@@ -63,6 +63,17 @@ window.electron.ipcRenderer.on('download-progress', (_event, downloadPercent) =>
   percentage.value = downloadPercent
 })
 
+// 新版本下载进度
+window.electron.ipcRenderer.on('close-window', () => {
+  ElMessageBox.confirm('确认退出吗?', '警告', {
+    confirmButtonText: '确认',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(() => {
+    window.electron.ipcRenderer.send('window-close')
+  })
+})
+
 // 新版本下载完成
 window.electron.ipcRenderer.on('update-downloaded', () => {
   setTimeout(() => {

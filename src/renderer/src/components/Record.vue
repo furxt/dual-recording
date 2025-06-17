@@ -186,10 +186,10 @@ window.electron.ipcRenderer.on('change-resolution', () => {
 window.electron.ipcRenderer.on('update-upload-progress', (_event, data) => {
   const { index, total } = data
   percentage.value = Math.floor((index / total) * 100)
-  if (index === total) {
-    showUploadProgress.value = false
-    percentage.value = 0
-  }
+  // if (index === total) {
+  //   showUploadProgress.value = false
+  //   percentage.value = 0
+  // }
 })
 
 window.electron.ipcRenderer.on('transcode-complete', () => {
@@ -635,17 +635,21 @@ const upload = async () => {
     mergeChunkUrl,
     checkFileUrl
   })
+
   if (loading) loading.close()
-  showUploadProgress.value = false
-  disableStartBtn.value = false
-  disableSettingBtn.value = false
-  if (success) {
-    ElMessage.success('上传成功')
-    disableReplayBtn.value = false
-  } else {
-    ElMessage.error('上传失败')
-    disableUploadBtn.value = false
-  }
+  setTimeout(() => {
+    showUploadProgress.value = false
+    percentage.value = 0
+    disableStartBtn.value = false
+    disableSettingBtn.value = false
+    if (success) {
+      ElMessage.success('上传成功')
+      disableReplayBtn.value = false
+    } else {
+      ElMessage.error('上传失败')
+      disableUploadBtn.value = false
+    }
+  }, 500)
 }
 
 const replay = async () => {

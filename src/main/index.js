@@ -230,19 +230,10 @@ export async function createWindow() {
   mainWindow.webContents.on('did-finish-load', async () => {})
 
   // 监听窗口关闭事件
-  // mainWindow.on('close', (event) => {
-  // const choice = dialog.showMessageBoxSync(mainWindow, {
-  //   type: 'question',
-  //   buttons: ['确定', '取消'],
-  //   title: '确认关闭',
-  //   message: '你确定要关闭窗口吗？',
-  //   noLink: true
-  // })
-  // if (choice === 1) {
-  //   // 用户点击了 "否"，阻止默认关闭行为
-  //   event.preventDefault()
-  // }
-  // })
+  mainWindow.on('close', (event) => {
+    event.preventDefault()
+    mainWindow.webContents.send('close-window')
+  })
 
   // 窗口关闭后释放引用
   mainWindow.on('closed', () => {

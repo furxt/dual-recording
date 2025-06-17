@@ -45,7 +45,9 @@ ipcMain.handle('get-video-config', () => {
 
 // 关闭窗口
 ipcMain.on('window-close', async () => {
+  mainWindow.removeAllListeners('close') // 移除监听器避免循环
   app.quit()
+  // mainWindow.close(); // 真正关闭窗口
 })
 
 // 最小化窗口
@@ -57,6 +59,7 @@ ipcMain.on('window-minimize', async () => {
 ipcMain.on('relaunch', async () => {
   logger.info('重启中...')
   if (!is.dev) {
+    mainWindow.removeAllListeners('close') // 移除监听器避免循环
     app.relaunch()
     app.quit()
   } else {

@@ -41,6 +41,7 @@ async function uploadFile(
   const UPLOAD_URL = `${serverUrl}${apiPrefix}${saveChunkUrl}`
   const MERGE_URL = `${serverUrl}${apiPrefix}${mergeChunkUrl}`
   const CHECK_URL = `${serverUrl}${apiPrefix}${checkFileUrl}`
+
   let result = {
     success: false
   }
