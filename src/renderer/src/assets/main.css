@@ -1,0 +1,9 @@
+@import './base.css';
+@import './elementplus.scss';
+
+@import 'tailwindcss';
+
+body {
+  margin: 0;
+  padding: 0;
+}

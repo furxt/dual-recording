@@ -1,0 +1,26 @@
+.small-notification {
+  width: 200px !important; /* 调整宽度 */
+  min-height: 30px !important; /* 调整最小高度 */
+  font-size: 10px !important; /* 字体大小 */
+  padding: 2px 4px !important; /* 内边距更小 */
+}
+
+.small-notification .el-notification__title {
+  font-size: 10px !important; /* 标题字体大小 */
+}
+
+.small-notification .el-notification__content {
+  margin-top: 0 !important; /* 去掉顶部间距 */
+  font-size: 10px !important; /* 内容字体大小 */
+}
+/* 调整关闭按钮位置 */
+.small-notification .el-notification__closeBtn {
+  top: 8px !important; /* 默认可能是 16px，可以调小一些 */
+  right: 12px !important; /* 默认可能是 15px，可以微调 */
+  font-size: 14px !important; /* 按钮字体大小（图标） */
+}
+
+/* 隐藏默认的加载图标和文本 */
+.transparent-loading .el-loading-spinner {
+  display: none !important;
+}

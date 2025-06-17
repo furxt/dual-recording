@@ -1,0 +1,9 @@
+node_modules
+dist
+out
+.DS_Store
+.eslintcache
+*.log*
+src/renderer/auto-imports.d.ts
+src/renderer/components.d.ts
+videos

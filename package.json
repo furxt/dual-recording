@@ -1,0 +1,66 @@
+{
+  "name": "dual-recording",
+  "version": "4.4.0",
+  "description": "录音录像",
+  "main": "./out/main/index.js",
+  "author": "liyi",
+  "scripts": {
+    "format": "prettier --write .",
+    "lint": "eslint --cache .",
+    "start": "electron-vite preview",
+    "dev": "electron-vite dev --watch",
+    "build": "electron-vite build",
+    "build:test": "electron-vite build --mode test",
+    "postinstall": "electron-builder install-app-deps",
+    "build:unpack": "npm run build && electron-builder --dir",
+    "build:win": "npm run build && electron-builder --win",
+    "build:win:test": "npm run build:test && electron-builder --win",
+    "build:mac": "npm run build && electron-builder --mac",
+    "build:linux": "npm run build && electron-builder --linux"
+  },
+  "dependencies": {
+    "@electron-toolkit/preload": "^3.0.2",
+    "@electron-toolkit/utils": "^4.0.0",
+    "@icon-park/vue-next": "^1.4.2",
+    "axios": "^1.10.0",
+    "electron-conf": "^1.3.0",
+    "electron-log": "^5.4.1",
+    "electron-updater": "^6.6.2",
+    "element-plus": "^2.10.2",
+    "p-queue": "^8.1.0",
+    "pinia": "^3.0.3",
+    "pinia-plugin-persistedstate": "^4.3.0",
+    "uuid": "^11.1.0",
+    "vue": "^3.5.16"
+  },
+  "devDependencies": {
+    "@electron-toolkit/eslint-config": "^2.1.0",
+    "@electron-toolkit/eslint-config-prettier": "^3.0.0",
+    "@tailwindcss/vite": "^4.1.10",
+    "@vitejs/plugin-vue": "^5.2.4",
+    "electron": "^35.5.1",
+    "electron-builder": "^25.1.8",
+    "electron-vite": "^3.1.0",
+    "eslint": "^9.29.0",
+    "eslint-plugin-vue": "^10.2.0",
+    "prettier": "^3.5.3",
+    "sass-embedded": "^1.89.2",
+    "tailwindcss": "^4.1.10",
+    "unplugin-auto-import": "^19.3.0",
+    "unplugin-vue-components": "^28.7.0",
+    "vite": "^6.3.5",
+    "vite-plugin-compression": "^0.5.1",
+    "vite-plugin-vue-devtools": "^7.7.6",
+    "vue-eslint-parser": "^10.1.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@tailwindcss/oxide",
+      "core-js",
+      "electron",
+      "es5-ext",
+      "esbuild",
+      "vue-demi"
+    ]
+  }
+}

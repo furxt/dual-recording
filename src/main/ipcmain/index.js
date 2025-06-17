@@ -1,0 +1,72 @@
+import { app, ipcMain, Menu } from 'electron'
+import { is } from '@electron-toolkit/utils'
+import utils from '../utils'
+import { mainWindow } from '..'
+import './logger'
+import './saveVideo'
+import './uploadFile'
+import './autoUpdate'
+
+const { logger } = utils.logger
+const { localConf, WINDOW_SIZE } = utils.globalConf
+
+/**
+ * 退出应用
+ */
+ipcMain.on('quit', () => {
+  const template = [
+    {
+      label: '退出',
+      click: () => {
+        app.quit()
+      }
+    }
+  ]
+  Menu.buildFromTemplate(template).popup()
+})
+
+/**
+ * 获取应用路径
+ */
+ipcMain.handle('getAppPath', () => {
+  return is.dev ? app.getAppPath() : app.getPath('exe')
+})
+
+// 获取应用版本
+ipcMain.handle('app-version', () => {
+  return app.getVersion()
+})
+
+// 获取视频配置
+ipcMain.handle('get-video-config', () => {
+  const { resolution } = localConf.get(WINDOW_SIZE)
+  return resolution
+})
+
+// 关闭窗口
+ipcMain.on('window-close', async () => {
+  app.quit()
+})
+
+// 最小化窗口
+ipcMain.on('window-minimize', async () => {
+  mainWindow.minimize()
+})
+
+// 重启
+ipcMain.on('relaunch', async () => {
+  logger.info('重启中...')
+  if (!is.dev) {
+    app.relaunch()
+    app.quit()
+  } else {
+    mainWindow.hide()
+    const { windowWidth, windowHeight } = localConf.get(WINDOW_SIZE)
+    mainWindow.reload()
+    mainWindow.setContentSize(windowWidth, windowHeight)
+    setTimeout(() => {
+      mainWindow.show()
+      mainWindow.center()
+    }, 1000)
+  }
+})

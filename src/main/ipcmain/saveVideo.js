@@ -1,0 +1,174 @@
+import { ipcMain } from 'electron'
+import fs from 'fs'
+import path from 'path'
+import { spawn } from 'child_process'
+import PQueue from 'p-queue'
+import utils from '../utils'
+import { mainWindow } from '..'
+
+const { videoDir } = utils.common
+const { logger } = utils.logger
+const { getFfmpegPath } = utils.ffmpeg
+
+// 串行队列
+let queue
+ipcMain.handle('save-chunk', async (_event, { buffer, uuid, chunkId }) => {
+  const folderPath = path.join(videoDir, uuid)
+  if (!fs.existsSync(folderPath)) {
+    fs.mkdirSync(folderPath, { recursive: true })
+    logger.success(`${folderPath} 文件夹创建成功`)
+  }
+
+  // 创建串行队列
+  if (!queue) {
+    if (queue) await queue.onIdle()
+    queue = new PQueue.default({ concurrency: 1 })
+  }
+
+  // 写入 webm 分片文件
+  const outputFilePath = path.join(folderPath, uuid)
+  queue.add(() => appendBufferToFile(Buffer.from(buffer), outputFilePath, chunkId))
+
+  return { success: true }
+})
+
+ipcMain.handle('repair-video', async (_event, { uuid }) => {
+  const ffmpegPath = getFfmpegPath()
+  const totalFragmentFile = path.join(videoDir, uuid, uuid)
+  const webmVideoPath = path.join(videoDir, uuid, `${uuid}.webm`)
+  const mp4VideoPath = path.join(videoDir, uuid, `${uuid}.mp4`)
+
+  try {
+    // 等待所有分片写完
+    await queue.onIdle()
+    // 修复分片导致时间戳缺失的问题
+    const fixedArgs = ['-i', totalFragmentFile, '-c', 'copy', '-fflags', '+genpts', webmVideoPath]
+    await runFFmpegTranscode(ffmpegPath, fixedArgs)
+    logger.success(`ffmpeg 修复 ${totalFragmentFile} 文件完成, 已生成 ${webmVideoPath} 文件`)
+
+    // 使用 Promise 包装整个转码异步过程
+    new Promise((resolve, reject) => {
+      try {
+        fs.promises.unlink(totalFragmentFile)
+        // ffmpeg 的执行转码参数
+        // const ffmpegArgs = [
+        //   '-i',
+        //   webmVideoPath,
+        //   '-c:v',
+        //   'libx264',
+        //   '-crf',
+        //   '20',
+        //   '-c:a',
+        //   'aac',
+        //   '-pix_fmt',
+        //   'yuv420p',
+        //   mp4VideoPath
+        // ]
+        const ffmpegArgs = [
+          '-i',
+          webmVideoPath,
+          '-c:v',
+          'libx264',
+          '-preset',
+          'fast',
+          '-crf',
+          '23',
+          '-c:a',
+          'aac',
+          '-b:a',
+          '192k',
+          '-pix_fmt',
+          'yuv420p',
+          '-vf',
+          'scale=1280:720:force_original_aspect_ratio=decrease,pad=1280:720:(ow-iw)/2:(oh-ih)/2',
+          mp4VideoPath
+        ]
+        // 执行 FFmpeg 转码WebM → MP4
+        logger.info(`开始转码 ${webmVideoPath} 文件...`)
+        runFFmpegTranscode(ffmpegPath, ffmpegArgs).then(() => {
+          logger.success(`ffmpeg ${webmVideoPath} 文件转码成功, 已生成 ${mp4VideoPath} 文件`)
+          mainWindow.webContents.send('transcode-complete')
+        })
+
+        resolve()
+      } catch (err) {
+        logger.error(`${mp4VideoPath} 文件转码过程中发生错误: ${err}`)
+        reject(err)
+      }
+    })
+
+    return { success: true, message: '录像本地保存成功', data: webmVideoPath }
+  } catch (error) {
+    logger.error(`修复 ${totalFragmentFile} 文件时间戳失败: ${error}`)
+    return { success: false, error: error.message }
+  }
+})
+
+function appendBufferToFile(buffer, outputFilePath, index) {
+  return new Promise((resolve, reject) => {
+    logger.info(`开始写入第${index + 1}个分片到 ${outputFilePath} 文件里`)
+    const writeStream = fs.createWriteStream(outputFilePath, { flags: 'a' })
+
+    writeStream.on('error', (err) => {
+      logger.error(`写入第${index + 1}个分片到 ${outputFilePath} 文件里失败, error: ${err}`)
+      writeStream.destroy()
+      reject(err)
+    })
+
+    // 写入数据
+    writeStream.write(buffer, (err) => {
+      if (err) {
+        reject(err) // 写入失败，直接 reject
+        return
+      }
+
+      // 写入成功后，调用 end() 关闭流
+      writeStream.end(() => {
+        logger.success(`成功写入第${index + 1}个分片到 ${outputFilePath} 文件里`)
+        writeStream.destroy()
+        resolve() // 流已关闭，任务完成
+      })
+    })
+  })
+}
+
+const runFFmpegTranscode = (ffmpegPath, args) => {
+  return new Promise((resolve, reject) => {
+    let ffmpeg = spawn(ffmpegPath, args)
+
+    // let stdoutBuffer = ''
+    // 监听标准输出（stdout）
+    // ffmpeg.stdout.on('data', (data) => {
+    //   const output = data.toString()
+    //   stdoutBuffer += output
+    // })
+
+    // 监听错误输出（stderr）
+    let stderrBuffer = ''
+    ffmpeg.stderr.on('data', (data) => {
+      const errorOutput = data.toString()
+      stderrBuffer += errorOutput
+      // logger.error(`FFmpeg 执行时的错误信息: ${errorOutput}`) // 实时打印 stderr
+    })
+
+    ffmpeg.on('close', (code) => {
+      if (code === 0) {
+        logger.success(`FFmpeg 执行命令【${ffmpegPath} ${args.join(' ')}】成功`)
+        resolve()
+      } else {
+        const errorMessage = `FFmpeg 执行命令【${ffmpegPath} ${args.join(' ')}】失败, 退出码: ${code}\nstderr 完整输出:\n${stderrBuffer}`
+        logger.error(errorMessage)
+        reject(new Error(errorMessage))
+      }
+      ffmpeg = null
+    })
+
+    ffmpeg.on('error', (err) => {
+      logger.error(`启动 FFmpeg 时发生错误: ${err.message}`)
+      reject(err)
+    })
+
+    // 如果你想主动中断任务，可以调用 ffmpeg.kill()
+    // ffmpeg.kill(); // 手动杀死子进程
+  })
+}
