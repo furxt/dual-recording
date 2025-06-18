@@ -7,3 +7,4 @@ out
 src/renderer/auto-imports.d.ts
 src/renderer/components.d.ts
 videos
+pnpm-lock.yaml
