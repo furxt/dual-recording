@@ -1,6 +1,5 @@
 import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron'
-import path, { join } from 'path'
-import fs from 'fs'
+import { join } from 'path'
 import { electronApp, is, platform, optimizer } from '@electron-toolkit/utils'
 import utils from './utils'
 import icon from '../../resources/icon.png?asset'
@@ -25,6 +24,7 @@ if (!app.requestSingleInstanceLock()) {
       if (platform.isWindows) {
         // 弹出警告框
         dialog.showMessageBox({
+          noLink: true,
           type: 'warning',
           buttons: ['确定'],
           title: '提示',

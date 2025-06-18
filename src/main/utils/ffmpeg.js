@@ -1,9 +1,8 @@
 import fs from 'fs'
-import { dialog } from 'electron'
-import { globalConf, logger as logUtils } from '.'
-
-import { mainWindow } from '..'
 import path from 'path'
+import { app, dialog } from 'electron'
+import { globalConf, logger as logUtils } from '.'
+import { mainWindow } from '..'
 import { platform } from '@electron-toolkit/utils'
 
 export const getFfmpegPath = () => {
@@ -23,14 +22,13 @@ export const checkFfmpegHomePath = async () => {
       type: 'question',
       buttons: ['确定', '取消'],
       title: 'ffmpeg',
-      message: '当前还未配置ffmpeg路径，现在就去配置吗？',
+      message: '当前未检测到有效的ffmpeg目录配置，现在就去配置吗？',
       noLink: true
     })
 
     if (choice === 1) {
       // 用户点击了 "否"，阻止默认关闭行为
-      // app.quit()
-      process.exit(0)
+      app.quit()
     } else {
       await setFfmpegHomePath(true)
     }
@@ -73,7 +71,7 @@ const confirmSetFfmpegHomePath = async (initFlag) => {
   if (choice === 1) {
     // 初始化不配置明白不让用
     if (initFlag) {
-      process.exit(0)
+      app.quit()
     }
   } else {
     await setFfmpegHomePath(initFlag)
