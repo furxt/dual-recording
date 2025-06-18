@@ -3,13 +3,14 @@ import fs from 'fs'
 import path from 'path'
 import { spawn } from 'child_process'
 import PQueue from 'p-queue'
-import utils from '../utils'
+import utils, { FileWriter } from '../utils'
 import { mainWindow } from '..'
 
 const { videoDir } = utils.common
 const { logger } = utils.logger
 const { getFfmpegPath } = utils.ffmpeg
 
+let fileWriter: FileWriter | null
 // 串行队列
 let queue
 ipcMain.handle('save-chunk', async (_event, { buffer, uuid, chunkId }) => {
@@ -28,8 +29,10 @@ ipcMain.handle('save-chunk', async (_event, { buffer, uuid, chunkId }) => {
 
   // 写入 webm 分片文件
   const outputFilePath = path.join(folderPath, uuid)
-  queue.add(() => appendBufferToFile(Buffer.from(buffer), outputFilePath, chunkId))
-
+  if (!fileWriter) {
+    fileWriter = new FileWriter(outputFilePath)
+  }
+  queue.add(() => fileWriter?.append(Buffer.from(buffer), chunkId))
   return { success: true }
 })
 
@@ -42,6 +45,11 @@ ipcMain.handle('repair-video', async (_event, { uuid }) => {
   try {
     // 等待所有分片写完
     await queue.onIdle()
+
+    fileWriter?.close().then(() => {
+      fileWriter = null
+    })
+
     // 修复分片导致时间戳缺失的问题
     const fixedArgs = ['-i', totalFragmentFile, '-c', 'copy', '-fflags', '+genpts', webmVideoPath]
     await runFFmpegTranscode(ffmpegPath, fixedArgs)
@@ -51,20 +59,6 @@ ipcMain.handle('repair-video', async (_event, { uuid }) => {
     new Promise<void>((resolve, reject) => {
       try {
         fs.promises.unlink(totalFragmentFile)
-        // ffmpeg 的执行转码参数
-        // const ffmpegArgs = [
-        //   '-i',
-        //   webmVideoPath,
-        //   '-c:v',
-        //   'libx264',
-        //   '-crf',
-        //   '20',
-        //   '-c:a',
-        //   'aac',
-        //   '-pix_fmt',
-        //   'yuv420p',
-        //   mp4VideoPath
-        // ]
         const ffmpegArgs = [
           '-i',
           webmVideoPath,
@@ -103,34 +97,6 @@ ipcMain.handle('repair-video', async (_event, { uuid }) => {
     return { success: false, error: '录像本地保存失败' }
   }
 })
-
-function appendBufferToFile(buffer, outputFilePath, index): Promise<void> {
-  return new Promise((resolve, reject) => {
-    logger.info(`开始写入第${index + 1}个分片到 ${outputFilePath} 文件里`)
-    const writeStream = fs.createWriteStream(outputFilePath, { flags: 'a' })
-
-    writeStream.on('error', (err) => {
-      logger.error(`写入第${index + 1}个分片到 ${outputFilePath} 文件里失败, error: ${err}`)
-      writeStream.destroy()
-      reject(err)
-    })
-
-    // 写入数据
-    writeStream.write(buffer, (err) => {
-      if (err) {
-        reject(err) // 写入失败，直接 reject
-        return
-      }
-
-      // 写入成功后，调用 end() 关闭流
-      writeStream.end(() => {
-        logger.success(`成功写入第${index + 1}个分片到 ${outputFilePath} 文件里`)
-        writeStream.destroy()
-        resolve() // 流已关闭，任务完成
-      })
-    })
-  })
-}
 
 const runFFmpegTranscode = (ffmpegPath, args): Promise<void> => {
   return new Promise((resolve, reject) => {

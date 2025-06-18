@@ -9,5 +9,5 @@
   "[json]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "cSpell.words": ["asar", "electronjs", "icns", "ipcmain", "libx", "liyi", "nsis", "uuidv"]
+  "cSpell.words": ["asar", "demi", "electronjs", "icns", "ipcmain", "libx", "liyi", "nsis", "uuidv"]
 }

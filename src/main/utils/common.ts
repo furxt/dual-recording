@@ -30,7 +30,7 @@ export const windowSizeArray: WindowSizeInfo[] = [
 ]
 
 export const sendError = (window, errorMsg): void => {
-  if (is.dev) window.webContents.send('catch-error', errorMsg)
+  window.webContents.send('catch-error', errorMsg)
 }
 
 // 在主进程 main.js 中
@@ -43,10 +43,23 @@ export const sleep = async (ms): Promise<void> => {
   })
 }
 
+export const generateErrorMsg = (error: Error): string => {
+  return `
+===============错误信息===============开始===================
+时间: ${new Date().toISOString()}
+错误信息: ${error.message}
+错误名称: ${error.name}
+错误堆栈:
+${error.stack || '(无堆栈信息)'}
+===============错误信息===============结束===================
+`
+}
+
 export default {
   rootDir,
   videoDir,
   windowSizeArray,
   sendError,
-  sleep
+  sleep,
+  generateErrorMsg
 }

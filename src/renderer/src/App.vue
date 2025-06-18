@@ -19,15 +19,15 @@
 </template>
 
 <script setup lang="ts">
+import type { LoadingInstance } from 'element-plus/es/components/loading/src/loading'
 import { useGlobalConfigStore } from '@renderer/stores'
-import { IS_DEV } from '@renderer/utils/common'
 
 window.electron.ipcRenderer.on('update-conf', (_event, data) => {
   console.log('收到主进程的消息:', data)
   globalConfigStore.config = { ...globalConfigStore.config, ...data }
 })
 
-let loading
+let loading: LoadingInstance | null
 const isDownloadUpdateApp = ref(false)
 const percentage = ref(0)
 const colors = [
@@ -95,11 +95,10 @@ window.electron.ipcRenderer.on('update-downloaded', () => {
   }, 500)
 })
 
-if (IS_DEV)
-  window.electron.ipcRenderer.on('catch-error', (_event, data) => {
-    console.log('收到主进程的错误消息:', data)
-    ElMessage.error(data)
-  })
+window.electron.ipcRenderer.on('catch-error', (_event, data) => {
+  console.log('收到主进程的错误消息:', data)
+  ElMessage.error(data)
+})
 
 const globalConfigStore = useGlobalConfigStore()
 

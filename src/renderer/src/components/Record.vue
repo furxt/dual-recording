@@ -332,19 +332,15 @@ onBeforeUnmount(() => {
   }
 })
 
-// let lastBlinkTime = 0
-// const blinkDuration = 1000 // 整个动画周期：600ms
 let lastUpdateTime = 0
 let beginTime = ''
-// let frameCount = 0
 const FRAME_RATE = 30 // 目标帧率，例如 30fps
 const FRAME_INTERVAL = 1000 / FRAME_RATE // 每帧间隔时间（ms）
-let lastDrawTime = performance.now()
 let lastDisplayedTime = dayjs().format('YYYY-MM-DD HH:mm:ss') // 初始化为当前时间
 // 新增一个数组用于存储时间戳映射
 const frameTimestamps = []
 
-function drawOverlay(timestamp) {
+function drawOverlay(timestamp: number) {
   const video = videoRef.value
   const canvas = canvasRef.value
 
@@ -353,66 +349,40 @@ function drawOverlay(timestamp) {
     return
   }
 
-  // 控制帧率，防止过度绘制
-  const now = timestamp
-  // if (now - lastDrawTime < FRAME_INTERVAL - 1) {
-  //   animationFrameId = requestAnimationFrame(drawOverlay)
-  //   return
-  // }
-  // lastDrawTime = now
-
   const ctx = canvas.getContext('2d')
 
   // 视频尚未准备好，暂停绘制
   if (video.readyState < 2) {
-    // animationFrameId = requestAnimationFrame(drawOverlay)
     return
   }
-
-  // console.log(videoWidth, videoHeight, video.offsetWidth, video.offsetHeight)
 
   // 设置 canvas 和视频尺寸一致
   canvas.width = videoConfig.value.width
   canvas.height = videoConfig.value.height
-
-  // 清空画布
-  ctx?.clearRect(0, 0, canvas.width, canvas.height)
-  // 计算缩放比例，保持原始视频比例不变
-  const scale = Math.min(canvas.width / video.videoWidth, canvas.height / video.videoHeight)
-  const x = canvas.width / 2 - (video.videoWidth / 2) * scale
-  const y = canvas.height / 2 - (video.videoHeight / 2) * scale
-  // 绘制当前帧到 canvas 上
-  ctx?.drawImage(video, x, y, video.videoWidth * scale, video.videoHeight * scale)
-
-  // 实时时间戳更新（每秒一次）
-  const currentTime =
-    now - lastUpdateTime >= 1000 ? dayjs().format('YYYY-MM-DD HH:mm:ss') : lastDisplayedTime
-  if (currentTime !== lastDisplayedTime) {
-    lastUpdateTime = now
-    lastDisplayedTime = currentTime
-  }
-
   if (ctx) {
+    // 清空画布
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    // 计算缩放比例，保持原始视频比例不变
+    const scale = Math.min(canvas.width / video.videoWidth, canvas.height / video.videoHeight)
+    const x = canvas.width / 2 - (video.videoWidth / 2) * scale
+    const y = canvas.height / 2 - (video.videoHeight / 2) * scale
+    // 绘制当前帧到 canvas 上
+    ctx.drawImage(video, x, y, video.videoWidth * scale, video.videoHeight * scale)
+
+    // 实时时间戳更新（每秒一次）
+    const currentTime =
+      timestamp - lastUpdateTime >= 950 ? dayjs().format('YYYY-MM-DD HH:mm:ss') : lastDisplayedTime
+    if (currentTime !== lastDisplayedTime) {
+      lastUpdateTime = timestamp
+      lastDisplayedTime = currentTime
+    }
+
     ctx.fillStyle = 'rgba(28, 31, 33, 0.7)'
     ctx.font = '18px Arial'
     ctx.fillText('© Watermark Text', x + 2, 20)
     ctx.fillText(beginTime, x + 2, 45)
     ctx.fillText(lastDisplayedTime, x + 2, 70)
   }
-
-  // ✅ 关键：继续请求下一帧，保持动画循环
-  // animationFrameId = requestAnimationFrame(drawOverlay)
-
-  // ✅ 增加帧计数器，可用于导出视频时计算 PTS/DTS
-  // frameCount++
-
-  // ✅ 新增：记录每帧的真实时间戳
-  // frameTimestamps.push({
-  //   frame: frameCount,
-  //   pts: now, // 毫秒级时间戳
-  //   isoTime: new Date().toISOString()
-  //   // displayedTime: lastDisplayedTime
-  // })
 }
 
 // 保存 chunk 到 本地文件夹
@@ -520,11 +490,7 @@ async function startRecording() {
 let animationIntervalId: NodeJS.Timeout | null = null
 function startDrawLoop() {
   const loop = () => {
-    const now = performance.now()
-    if (now - lastDrawTime >= FRAME_INTERVAL) {
-      drawOverlay(now)
-      lastDrawTime = now
-    }
+    drawOverlay(performance.now())
     animationIntervalId = setTimeout(loop, FRAME_INTERVAL) // 更可控
   }
   loop()
@@ -543,7 +509,6 @@ function togglePlay() {
 function pauseRecording() {
   if (mediaRecorder && mediaRecorder.state === 'recording') {
     mediaRecorder.pause()
-    // cancelAnimationFrame(animationFrameId)
     clearTimeout(animationIntervalId as NodeJS.Timeout)
     togglePlay()
     disablePauseBtn.value = true
@@ -560,7 +525,6 @@ function resumeRecording() {
     showRed.value = true
     isPaused.value = false
     mediaRecorder.resume()
-    // drawOverlay(performance.now())
     startDrawLoop()
     togglePlay()
   }
@@ -585,7 +549,6 @@ function stopRecording() {
 
     clearTimeout(animationIntervalId as NodeJS.Timeout)
     animationIntervalId = null
-    // cancelAnimationFrame(animationFrameId)
 
     // ✅ 恢复原始视频流
     if (videoRef.value) {

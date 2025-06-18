@@ -28,7 +28,7 @@ ${error.stack || '(无堆栈信息)'}
 错误来源: ${origin}
 `
   logger.error(errorMessage)
-  utils.common.sendError(mainWindow, '程序异常')
+  if (is.dev) utils.common.sendError(mainWindow, '程序异常')
 })
 
 process.on('unhandledRejection', (reason) => {
@@ -42,7 +42,7 @@ ${reason instanceof Error ? reason.stack : '(非 Error 对象，无堆栈信息)
 原始数据: ${JSON.stringify(reason, null, 2)}
 `
   logger.error(errorMessage)
-  utils.common.sendError(mainWindow, '程序异常')
+  if (is.dev) utils.common.sendError(mainWindow, '程序异常')
 })
 
 if (!app.requestSingleInstanceLock()) {
