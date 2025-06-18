@@ -10,7 +10,8 @@ import './ipcmain'
 export let mainWindow: BrowserWindow | null = null
 
 const {
-  logger: { logger }
+  logger: { logger },
+  common: { generateErrorMsg }
 } = utils
 
 // 启用硬件加速
@@ -20,11 +21,7 @@ app.commandLine.appendSwitch('enable-accelerated-video-decode')
 process.on('uncaughtException', (error, origin) => {
   const errorMessage = `
 【主进程未捕获的异常】
-时间: ${new Date().toISOString()}
-错误信息: ${error.message}
-错误名称: ${error.name}
-错误堆栈:
-${error.stack || '(无堆栈信息)'}
+${generateErrorMsg(error)}
 错误来源: ${origin}
 `
   logger.error(errorMessage)
@@ -102,6 +99,7 @@ app.whenReady().then(async () => {
   })
 
   mainWindow = await utils.window.createMainWindow(icon)
+  utils.tray.createTray(mainWindow)
 
   app.on('activate', function () {
     // On macOS it's common to re-create a window in the app when the

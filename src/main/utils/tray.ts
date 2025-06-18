@@ -1,6 +1,7 @@
 import { app, Tray, Menu } from 'electron'
 import { common, globalConf, ffmpeg } from '.'
 import path from 'path'
+import { log } from 'util'
 
 export const createTray = (mainWindow: Electron.BrowserWindow): void => {
   const { windowSizeArray } = common
@@ -25,6 +26,16 @@ export const createTray = (mainWindow: Electron.BrowserWindow): void => {
           click: (subMenu) => {
             subMenu.checked = false
             const windowSize = windowSizeArray.find((e) => e.id === '480')
+            const windowSizeArr = mainWindow.getContentSize()
+            const localWindowSizeConf = localConf.get(WINDOW_SIZE) as WindowSizeInfo
+            if (
+              windowSize &&
+              windowSizeArr.includes(windowSize.windowHeight) &&
+              localWindowSizeConf.windowHeight === windowSize.windowHeight
+            ) {
+              mainWindow.webContents.send('primary-message', '当前分辨率已设置为480p，无需重置')
+              return
+            }
             localConf.set(WINDOW_SIZE, windowSize)
             mainWindow.webContents.send('change-resolution')
           }
@@ -35,6 +46,17 @@ export const createTray = (mainWindow: Electron.BrowserWindow): void => {
           click: (subMenu) => {
             subMenu.checked = false
             const windowSize = windowSizeArray.find((e) => e.id === '720')
+            const windowSizeArr = mainWindow.getContentSize()
+            const localWindowSizeConf = localConf.get(WINDOW_SIZE) as WindowSizeInfo
+
+            if (
+              windowSize &&
+              windowSizeArr.includes(windowSize.windowHeight) &&
+              localWindowSizeConf.windowHeight === windowSize.windowHeight
+            ) {
+              mainWindow.webContents.send('primary-message', '当前分辨率已设置为720p，无需重置')
+              return
+            }
             localConf.set(WINDOW_SIZE, windowSize)
             mainWindow.webContents.send('change-resolution')
           }

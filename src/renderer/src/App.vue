@@ -22,6 +22,11 @@
 import type { LoadingInstance } from 'element-plus/es/components/loading/src/loading'
 import { useGlobalConfigStore } from '@renderer/stores'
 
+window.electron.ipcRenderer.on('primary-message', (_event, data) => {
+  console.log('收到主进程的消息:', data)
+  ElMessage.primary(data)
+})
+
 window.electron.ipcRenderer.on('update-conf', (_event, data) => {
   console.log('收到主进程的消息:', data)
   globalConfigStore.config = { ...globalConfigStore.config, ...data }
