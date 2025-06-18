@@ -1,8 +1,6 @@
 import { app, Tray, Menu } from 'electron'
 import { common, globalConf, ffmpeg } from '.'
 import path from 'path'
-import { log } from 'util'
-
 export const createTray = (mainWindow: Electron.BrowserWindow): void => {
   const { windowSizeArray } = common
   const { WINDOW_SIZE, localConf } = globalConf
@@ -63,22 +61,6 @@ export const createTray = (mainWindow: Electron.BrowserWindow): void => {
         }
       ]
     },
-    // {
-    //   label: '显示窗口',
-    //   click: () => {
-    //     if (mainWindow) {
-    //       if (mainWindow.isMinimized()) mainWindow.restore()
-    //       mainWindow.show()
-    //       mainWindow.focus()
-    //     }
-    //   }
-    // },
-    // {
-    //   label: '隐藏窗口',
-    //   click: () => {
-    //     if (mainWindow) mainWindow.hide()
-    //   }
-    // },
     { type: 'separator' },
     {
       label: '退出',
