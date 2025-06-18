@@ -5,18 +5,6 @@
     </div>
     <!-- 右侧操作按钮 -->
     <div class="title-bar-controls">
-      <!-- <button class="control-btn minimize-btn" @click="minimizeWindow" title="最小化">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-          <path d="M4 12h16v-2H4z" />
-        </svg>
-      </button>
-      <button class="control-btn close-btn" @click="closeWindow" title="关闭">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-          <path
-            d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
-          />
-        </svg>
-      </button> -->
       <button class="control-btn minimize-btn" @click="minimizeWindow" title="最小化">
         <Minus theme="outline" size="14" fill="#ffffff" />
       </button>
@@ -28,7 +16,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { Close, Minus } from '@icon-park/vue-next'
 function minimizeWindow() {
   window.electron.ipcRenderer.send('window-minimize')

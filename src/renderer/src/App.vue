@@ -18,7 +18,7 @@
   </Suspense>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { useGlobalConfigStore } from '@renderer/stores'
 import { IS_DEV } from '@renderer/utils/common'
 
@@ -78,7 +78,7 @@ window.electron.ipcRenderer.on('close-window', () => {
 window.electron.ipcRenderer.on('update-downloaded', () => {
   setTimeout(() => {
     if (loading) {
-      loading.close()
+      loading?.close()
       loading = null
     }
     isDownloadUpdateApp.value = false

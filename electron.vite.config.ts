@@ -52,14 +52,14 @@ export default defineConfig(({ mode }) => {
       build: {
         rollupOptions: {
           output: {
-            chunkFileNames: (chunkInfo) => {
+            chunkFileNames: () => {
               return 'assets/js/[name]-[hash].js'
             },
             // 自定义输出目录和文件名
-            entryFileNames: (chunkInfo) => {
+            entryFileNames: () => {
               return 'assets/js/[name]-[hash].js'
             },
-            assetFileNames: (assetInfo) => {
+            assetFileNames: () => {
               return 'assets/[ext]/[name]-[hash].[ext]'
             },
             manualChunks(id) {

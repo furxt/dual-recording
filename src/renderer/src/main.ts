@@ -3,7 +3,7 @@ import store from './stores'
 import { createApp } from 'vue'
 import App from './App.vue'
 import './assets/main.css'
-import 'element-plus/dist/index.css'
+// import 'element-plus/dist/index.css'
 
 const app = createApp(App)
 app.use(store)

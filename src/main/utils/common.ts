@@ -2,7 +2,6 @@ import { app } from 'electron'
 import path from 'path'
 import { is } from '@electron-toolkit/utils'
 
-/* global __APP_ENV__:readonly */
 // 打包时的环境 development | production | test
 export const APP_ENV = __APP_ENV__
 
@@ -15,7 +14,7 @@ export const videoDir = is.dev
   ? path.join(rootDir, 'videos')
   : path.join(app.getPath('appData'), projectName, 'videos')
 
-export const windowSizeArray = [
+export const windowSizeArray: WindowSizeInfo[] = [
   {
     id: '480',
     windowWidth: 655, //1250
@@ -30,15 +29,15 @@ export const windowSizeArray = [
   }
 ]
 
-export const sendError = (window, errorMsg) => {
+export const sendError = (window, errorMsg): void => {
   if (is.dev) window.webContents.send('catch-error', errorMsg)
 }
 
 // 在主进程 main.js 中
-export const sleep = async (ms) => {
+export const sleep = async (ms): Promise<void> => {
   return new Promise((resolve) => {
     const timer = setTimeout(() => {
-      resolve(true)
+      resolve()
       clearTimeout(timer)
     }, ms)
   })

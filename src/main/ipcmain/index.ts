@@ -39,37 +39,42 @@ ipcMain.handle('app-version', () => {
 
 // 获取视频配置
 ipcMain.handle('get-video-config', () => {
-  const { resolution } = localConf.get(WINDOW_SIZE)
+  const { resolution } = localConf.get(WINDOW_SIZE) as WindowSizeInfo
   return resolution
 })
 
 // 关闭窗口
 ipcMain.on('window-close', async () => {
-  mainWindow.removeAllListeners('close') // 移除监听器避免循环
+  mainWindow?.removeAllListeners('close') // 移除监听器避免循环
   app.quit()
   // mainWindow.close(); // 真正关闭窗口
 })
 
 // 最小化窗口
 ipcMain.on('window-minimize', async () => {
-  mainWindow.minimize()
+  mainWindow?.minimize()
 })
 
 // 重启
 ipcMain.on('relaunch', async () => {
   logger.info('重启中...')
   if (!is.dev) {
-    mainWindow.removeAllListeners('close') // 移除监听器避免循环
+    mainWindow?.removeAllListeners('close') // 移除监听器避免循环
     app.relaunch()
     app.quit()
   } else {
-    mainWindow.hide()
-    const { windowWidth, windowHeight } = localConf.get(WINDOW_SIZE)
-    mainWindow.reload()
-    mainWindow.setContentSize(windowWidth, windowHeight)
+    mainWindow?.hide()
+    const { windowWidth, windowHeight } = localConf.get(WINDOW_SIZE) as WindowSizeInfo
+    mainWindow?.reload()
+    mainWindow?.setContentSize(windowWidth, windowHeight)
     setTimeout(() => {
-      mainWindow.show()
-      mainWindow.center()
+      mainWindow?.show()
+      mainWindow?.center()
     }, 1000)
   }
+})
+
+// 监听渲染进程错误
+ipcMain.on('renderer-error', (_event, error) => {
+  console.error('渲染进程错误:', error)
 })

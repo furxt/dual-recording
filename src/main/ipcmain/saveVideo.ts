@@ -22,7 +22,8 @@ ipcMain.handle('save-chunk', async (_event, { buffer, uuid, chunkId }) => {
   // 创建串行队列
   if (!queue) {
     if (queue) await queue.onIdle()
-    queue = new PQueue.default({ concurrency: 1 })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    queue = new (PQueue as any).default({ concurrency: 1 }) // ⚠️ 牺牲类型安全
   }
 
   // 写入 webm 分片文件
@@ -47,7 +48,7 @@ ipcMain.handle('repair-video', async (_event, { uuid }) => {
     logger.success(`ffmpeg 修复 ${totalFragmentFile} 文件完成, 已生成 ${webmVideoPath} 文件`)
 
     // 使用 Promise 包装整个转码异步过程
-    new Promise((resolve, reject) => {
+    new Promise<void>((resolve, reject) => {
       try {
         fs.promises.unlink(totalFragmentFile)
         // ffmpeg 的执行转码参数
@@ -87,9 +88,8 @@ ipcMain.handle('repair-video', async (_event, { uuid }) => {
         logger.info(`开始转码 ${webmVideoPath} 文件...`)
         runFFmpegTranscode(ffmpegPath, ffmpegArgs).then(() => {
           logger.success(`ffmpeg ${webmVideoPath} 文件转码成功, 已生成 ${mp4VideoPath} 文件`)
-          mainWindow.webContents.send('transcode-complete')
+          mainWindow?.webContents.send('transcode-complete')
         })
-
         resolve()
       } catch (err) {
         logger.error(`${mp4VideoPath} 文件转码过程中发生错误: ${err}`)
@@ -100,11 +100,11 @@ ipcMain.handle('repair-video', async (_event, { uuid }) => {
     return { success: true, message: '录像本地保存成功', data: webmVideoPath }
   } catch (error) {
     logger.error(`修复 ${totalFragmentFile} 文件时间戳失败: ${error}`)
-    return { success: false, error: error.message }
+    return { success: false, error: '录像本地保存失败' }
   }
 })
 
-function appendBufferToFile(buffer, outputFilePath, index) {
+function appendBufferToFile(buffer, outputFilePath, index): Promise<void> {
   return new Promise((resolve, reject) => {
     logger.info(`开始写入第${index + 1}个分片到 ${outputFilePath} 文件里`)
     const writeStream = fs.createWriteStream(outputFilePath, { flags: 'a' })
@@ -132,9 +132,9 @@ function appendBufferToFile(buffer, outputFilePath, index) {
   })
 }
 
-const runFFmpegTranscode = (ffmpegPath, args) => {
+const runFFmpegTranscode = (ffmpegPath, args): Promise<void> => {
   return new Promise((resolve, reject) => {
-    let ffmpeg = spawn(ffmpegPath, args)
+    const ffmpeg = spawn(ffmpegPath, args)
 
     // let stdoutBuffer = ''
     // 监听标准输出（stdout）
@@ -160,7 +160,7 @@ const runFFmpegTranscode = (ffmpegPath, args) => {
         logger.error(errorMessage)
         reject(new Error(errorMessage))
       }
-      ffmpeg = null
+      // ffmpeg = null
     })
 
     ffmpeg.on('error', (err) => {

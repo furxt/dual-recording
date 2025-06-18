@@ -30,19 +30,19 @@ ipcMain.handle(
     return result
   }
 )
-async function uploadFile(
-  localFilePath,
-  serverUrl,
-  apiPrefix,
-  saveChunkUrl,
-  mergeChunkUrl,
-  checkFileUrl
-) {
+const uploadFile = async (
+  localFilePath: string,
+  serverUrl: string,
+  apiPrefix: string,
+  saveChunkUrl: string,
+  mergeChunkUrl: string,
+  checkFileUrl: string
+): Promise<Result<void>> => {
   const UPLOAD_URL = `${serverUrl}${apiPrefix}${saveChunkUrl}`
   const MERGE_URL = `${serverUrl}${apiPrefix}${mergeChunkUrl}`
   const CHECK_URL = `${serverUrl}${apiPrefix}${checkFileUrl}`
 
-  let result = {
+  const result = {
     success: false
   }
   try {
@@ -60,9 +60,9 @@ async function uploadFile(
       const formData = new FormData()
       formData.append('file', new Blob([buffer]), `${i}`) // 模拟文件对象
       // formData.append('fileId', fileId)
-      formData.append('chunkIndex', i)
+      formData.append('chunkIndex', `${i}`)
       formData.append('chunkMD5', chunkMD5)
-      formData.append('totalChunks', totalChunks)
+      formData.append('totalChunks', `${totalChunks}`)
 
       logger.info(`正在上传 ${fileId} 的第 ${i + 1}/${totalChunks} 片...`)
       const {
@@ -74,9 +74,9 @@ async function uploadFile(
 
       if (code !== 1) {
         logger.error(`上传 ${fileId} 的第 ${i + 1}/${totalChunks} 片失败`)
-        return
+        return Promise.resolve(result)
       } else {
-        mainWindow.webContents.send('update-upload-progress', {
+        mainWindow?.webContents.send('update-upload-progress', {
           index: i + 1,
           total: totalChunks
         })
@@ -94,7 +94,7 @@ async function uploadFile(
     } = await axios.get(`${MERGE_URL}/${fileId}`, { params: { totalChunks } })
     if (code !== 1) {
       logger.error(`通知后端合并文件 ${fileId} 失败`)
-      return
+      return Promise.resolve(result)
     } else {
       logger.success(`${fileId} 文件合并完成`)
     }
@@ -112,7 +112,7 @@ async function uploadFile(
   } catch (err) {
     logger.error(`文件上传失败:\n${err}`)
   }
-  return result
+  return Promise.resolve(result)
 }
 
 /**
@@ -122,16 +122,21 @@ async function uploadFile(
  * @param {number} size
  * @returns {Promise<string>}
  */
-async function getChunkMD5(flag, filePath, offset, size) {
+async function getChunkMD5(
+  flag: boolean,
+  filePath: string,
+  offset: number,
+  size: number
+): Promise<HashResult> {
   return new Promise((resolve, reject) => {
-    const buffers = []
+    const buffers: Buffer[] = []
     const hash = crypto.createHash('md5')
     const stream = fs.createReadStream(filePath, { start: offset, end: offset + size - 1 })
 
     stream.on('data', (chunk) => {
       hash.update(chunk)
       if (flag) {
-        buffers.push(chunk)
+        buffers.push(chunk as Buffer)
       }
     })
 
@@ -143,4 +148,9 @@ async function getChunkMD5(flag, filePath, offset, size) {
       reject(err)
     })
   })
+}
+
+interface HashResult {
+  md5: string // hash.digest('hex') 返回十六进制字符串
+  buffer: Buffer // Buffer.concat 返回新的 Buffer 实例
 }

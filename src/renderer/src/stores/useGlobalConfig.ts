@@ -1,10 +1,7 @@
-import { defineStore } from 'pinia'
-import { ref } from 'vue'
-
 export const useGlobalConfigStore = defineStore(
   'useGlobalConfigStore',
   () => {
-    const config = ref({
+    const config = ref<Config>({
       audioinputDeviceId: null,
       videoinputDeviceId: null
     })
@@ -16,3 +13,9 @@ export const useGlobalConfigStore = defineStore(
     persist: true
   }
 )
+
+// 定义类型
+interface Config {
+  audioinputDeviceId: string | null
+  videoinputDeviceId: string | null
+}

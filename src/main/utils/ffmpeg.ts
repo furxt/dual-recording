@@ -5,20 +5,20 @@ import { globalConf, logger as logUtils } from '.'
 import { mainWindow } from '..'
 import { platform } from '@electron-toolkit/utils'
 
-export const getFfmpegPath = () => {
+export const getFfmpegPath = (): string => {
   const { localConf, FFMPEG_HOME_PATH } = globalConf
   return path.join(
-    localConf.get(FFMPEG_HOME_PATH),
+    localConf.get(FFMPEG_HOME_PATH) as string,
     'bin',
     platform.isWindows ? 'ffmpeg.exe' : 'ffmpeg'
   )
 }
 
-export const checkFfmpegHomePath = async () => {
+export const checkFfmpegHomePath = async (): Promise<void> => {
   const { localConf, FFMPEG_HOME_PATH } = globalConf
-  const ffmpegHomePath = localConf.get(FFMPEG_HOME_PATH)
+  const ffmpegHomePath = localConf.get(FFMPEG_HOME_PATH) as string
   if (!ffmpegHomePath || !fs.existsSync(ffmpegHomePath) || !fs.existsSync(getFfmpegPath())) {
-    const choice = dialog.showMessageBoxSync(mainWindow, {
+    const choice = dialog.showMessageBoxSync(mainWindow!, {
       type: 'question',
       buttons: ['确定', '取消'],
       title: 'ffmpeg',
@@ -35,9 +35,9 @@ export const checkFfmpegHomePath = async () => {
   }
 }
 
-export const setFfmpegHomePath = async (initFlag) => {
+export const setFfmpegHomePath = async (initFlag): Promise<void> => {
   // 弹出文件夹选择对话框
-  const result = await dialog.showOpenDialog(mainWindow, {
+  const result = await dialog.showOpenDialog(mainWindow!, {
     properties: ['openDirectory'] // 只允许选择文件夹
   })
 
@@ -59,8 +59,8 @@ export const setFfmpegHomePath = async (initFlag) => {
   }
 }
 
-const confirmSetFfmpegHomePath = async (initFlag) => {
-  const choice = dialog.showMessageBoxSync(mainWindow, {
+const confirmSetFfmpegHomePath = async (initFlag): Promise<void> => {
+  const choice = dialog.showMessageBoxSync(mainWindow!, {
     type: 'question',
     buttons: ['确定', '取消'],
     title: 'ffmpeg',

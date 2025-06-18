@@ -11,7 +11,7 @@ Logger.transports.file.maxSize = 10024300 // 文件最大不超过 10M
 // 输出格式
 Logger.transports.file.format = '[{y}-{m}-{d} {h}:{i}:{s}.{ms}] [{level}]{scope} {text}'
 
-let dateStr = dayjs().format('YYYY-MM-DD')
+const dateStr = dayjs().format('YYYY-MM-DD')
 // 文件位置及命名方式
 // 默认位置为：C:\Users\[user]\AppData\Roaming\[appname]\electron_log\
 // 文件名为：年-月-日.log
@@ -24,45 +24,45 @@ Logger.transports.file.resolvePathFn = () => {
 
 // 有六个日志级别error, warn, info, verbose, debug, silly。默认是silly
 export const logger = {
-  info(param) {
+  info(param: string | string[]) {
     if (is.dev) {
       console.log(param)
     } else {
       Logger.info(param)
     }
   },
-  warn(param) {
+  warn(param: string | string[]) {
     if (is.dev) {
       console.debug('⚠️', param)
     } else {
       Logger.warn('⚠️', param)
     }
   },
-  error(param) {
+  error(param: string | string[]) {
     if (is.dev) {
       console.error('❌', param)
     } else {
       Logger.error('❌', param)
     }
   },
-  success(param) {
+  success(param: string | string[]) {
     if (is.dev) {
       console.info('✅', param)
     } else {
       Logger.info('✅', param)
     }
   },
-  debug(param) {
+  debug(param: string | string[]) {
     if (is.dev) {
       console.debug('🐞', param)
     } else {
       Logger.debug('🐞', param)
     }
   },
-  verbose(param) {
+  verbose(param: string | string[]) {
     Logger.verbose(param)
   },
-  silly(param) {
+  silly(param: string | string[]) {
     Logger.silly(param)
   }
 }

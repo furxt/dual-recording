@@ -30,12 +30,6 @@
         </el-select>
       </el-form-item>
     </el-form>
-    <!-- <template #footer>
-      <div class="dialog-footer">
-        <el-button @click="dialogSettingVisible = false">取消</el-button>
-        <el-button type="primary" @click="dialogSettingVisible = false">确认</el-button>
-      </div>
-    </template> -->
   </el-dialog>
   <div class="flex flex-col items-center">
     <!-- 视频区域 -->
@@ -156,7 +150,7 @@
   <!-- 设置弹窗保持不变 -->
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { v4 as uuidv4 } from 'uuid'
 import { dayjs } from 'element-plus'
 import { GoAhead, Logout, PauseOne, ReplayMusic, Setting, Upload, Video } from '@icon-park/vue-next'
@@ -186,10 +180,6 @@ window.electron.ipcRenderer.on('change-resolution', () => {
 window.electron.ipcRenderer.on('update-upload-progress', (_event, data) => {
   const { index, total } = data
   percentage.value = Math.floor((index / total) * 100)
-  // if (index === total) {
-  //   showUploadProgress.value = false
-  //   percentage.value = 0
-  // }
 })
 
 window.electron.ipcRenderer.on('transcode-complete', () => {
@@ -215,8 +205,8 @@ const colors = [
 ]
 
 // DOM 引用
-const videoRef = ref(null)
-const canvasRef = ref(null)
+const videoRef = ref<HTMLVideoElement | null>(null)
+const canvasRef = ref<HTMLCanvasElement | null>(null)
 const showRed = ref(false)
 const showUploadProgress = ref(false)
 const localFilePath = ref('')
@@ -225,10 +215,10 @@ const localFilePath = ref('')
 const isRecording = ref(false)
 const isPaused = ref(false)
 
-let canvasStream = null
-let mediaStream = null
-let mediaRecorder = null
-let animationFrameId = null
+let canvasStream: MediaStream | null = null
+let mediaStream: MediaStream | null = null
+let mediaRecorder: MediaRecorder | null = null
+let animationFrameId: number | null = null
 
 const disableReplayBtn = ref(true)
 const disableSettingBtn = ref(false)
@@ -240,10 +230,13 @@ const disableUploadBtn = ref(true)
 const showControls = ref(false)
 
 const dialogSettingVisible = ref(false)
-const settingForm = ref({})
+const settingForm = ref({
+  videoinputLabel: '',
+  audioinputLabel: ''
+})
 
-const videoinputDevices = ref([])
-const audioinputDevices = ref([])
+const videoinputDevices = ref<MediaDeviceInfo[]>([])
+const audioinputDevices = ref<MediaDeviceInfo[]>([])
 
 const videoConfig = ref({
   width: 0,
@@ -289,7 +282,7 @@ onMounted(async () => {
   try {
     mediaStream = await navigator.mediaDevices.getUserMedia({
       audio,
-      video: { ...videoConfig.value, deviceId: globalConfigStore.config.videoinputDeviceId }
+      video: { ...videoConfig.value, deviceId: globalConfigStore.config.videoinputDeviceId! }
     })
     const tracks = mediaStream.getTracks()
     tracks.forEach((track) => {
@@ -305,14 +298,16 @@ onMounted(async () => {
     ElMessage.error('无法访问摄像头或麦克风，请检查权限设置')
     return
   }
-  videoRef.value.srcObject = mediaStream
+  if (videoRef.value) {
+    videoRef.value.srcObject = mediaStream
+  }
 })
 
 // 🔥 页面卸载前释放所有资源
 onBeforeUnmount(() => {
   // 停止动画帧请求
   if (!animationFrameId) {
-    cancelAnimationFrame(animationFrameId)
+    cancelAnimationFrame(animationFrameId as unknown as number)
   }
 
   // 如果正在录制，则停止录制
@@ -340,8 +335,8 @@ onBeforeUnmount(() => {
 // let lastBlinkTime = 0
 // const blinkDuration = 1000 // 整个动画周期：600ms
 let lastUpdateTime = 0
-let beginTime
-let frameCount = 0
+let beginTime = ''
+// let frameCount = 0
 const FRAME_RATE = 30 // 目标帧率，例如 30fps
 const FRAME_INTERVAL = 1000 / FRAME_RATE // 每帧间隔时间（ms）
 let lastDrawTime = performance.now()
@@ -381,13 +376,13 @@ function drawOverlay(timestamp) {
   canvas.height = videoConfig.value.height
 
   // 清空画布
-  ctx.clearRect(0, 0, canvas.width, canvas.height)
+  ctx?.clearRect(0, 0, canvas.width, canvas.height)
   // 计算缩放比例，保持原始视频比例不变
   const scale = Math.min(canvas.width / video.videoWidth, canvas.height / video.videoHeight)
   const x = canvas.width / 2 - (video.videoWidth / 2) * scale
   const y = canvas.height / 2 - (video.videoHeight / 2) * scale
   // 绘制当前帧到 canvas 上
-  ctx.drawImage(video, x, y, video.videoWidth * scale, video.videoHeight * scale)
+  ctx?.drawImage(video, x, y, video.videoWidth * scale, video.videoHeight * scale)
 
   // 实时时间戳更新（每秒一次）
   const currentTime =
@@ -397,11 +392,13 @@ function drawOverlay(timestamp) {
     lastDisplayedTime = currentTime
   }
 
-  ctx.fillStyle = 'rgba(28, 31, 33, 0.7)'
-  ctx.font = '18px Arial'
-  ctx.fillText('© Watermark Text', x + 2, 20)
-  ctx.fillText(beginTime, x + 2, 45)
-  ctx.fillText(lastDisplayedTime, x + 2, 70)
+  if (ctx) {
+    ctx.fillStyle = 'rgba(28, 31, 33, 0.7)'
+    ctx.font = '18px Arial'
+    ctx.fillText('© Watermark Text', x + 2, 20)
+    ctx.fillText(beginTime, x + 2, 45)
+    ctx.fillText(lastDisplayedTime, x + 2, 70)
+  }
 
   // ✅ 关键：继续请求下一帧，保持动画循环
   // animationFrameId = requestAnimationFrame(drawOverlay)
@@ -455,12 +452,14 @@ async function startRecording() {
   const audioTrack = mediaStream.getAudioTracks()[0]
 
   // 获取 canvas 流
-  canvasStream = canvasRef.value.captureStream(FRAME_RATE) // 10fps
-  const newVideoTrack = canvasStream.getVideoTracks()[0]
+  if (canvasRef.value) {
+    canvasStream = canvasRef.value.captureStream(FRAME_RATE) // 10fps
+  }
+  const newVideoTrack = canvasStream?.getVideoTracks()[0]
 
   // 创建混合流：canvas 视频 + 原始音频
   const mixedStream = new MediaStream()
-  mixedStream.addTrack(newVideoTrack)
+  mixedStream.addTrack(newVideoTrack!)
   if (audioTrack) {
     mixedStream.addTrack(audioTrack.clone())
   }
@@ -468,7 +467,7 @@ async function startRecording() {
   // 初始化 MediaRecorder
   let chunkId = 0
   const uuid = uuidv4().replace(/-/g, '')
-  const pendingSaves = [] // 跟踪未完成的保存任务
+  const pendingSaves: Promise<void>[] = [] // 跟踪未完成的保存任务
   // 设置比特率和编码
   const options = {
     mimeType: 'video/webm;codecs=vp9',
@@ -518,7 +517,7 @@ async function startRecording() {
   startDrawLoop()
 }
 
-let animationIntervalId = null
+let animationIntervalId: NodeJS.Timeout | null = null
 function startDrawLoop() {
   const loop = () => {
     const now = performance.now()
@@ -534,10 +533,10 @@ function startDrawLoop() {
 // 切换播放/暂停状态
 function togglePlay() {
   const video = videoRef.value
-  if (video.paused) {
+  if (video?.paused) {
     video.play()
   } else {
-    video.pause()
+    video?.pause()
   }
 }
 
@@ -545,7 +544,7 @@ function pauseRecording() {
   if (mediaRecorder && mediaRecorder.state === 'recording') {
     mediaRecorder.pause()
     // cancelAnimationFrame(animationFrameId)
-    clearTimeout(animationIntervalId)
+    clearTimeout(animationIntervalId as NodeJS.Timeout)
     togglePlay()
     disablePauseBtn.value = true
     disableResumeBtn.value = false
@@ -584,7 +583,7 @@ function stopRecording() {
     mediaRecorder.stop()
     isPaused.value = false
 
-    clearTimeout(animationIntervalId)
+    clearTimeout(animationIntervalId as NodeJS.Timeout)
     animationIntervalId = null
     // cancelAnimationFrame(animationFrameId)
 
@@ -653,12 +652,14 @@ const upload = async () => {
 }
 
 const replay = async () => {
-  videoRef.value.src = null // 清除之前的 src
-  videoRef.value.srcObject = null // 确保清除任何现有的媒体流
-  console.log('replay', localFilePath.value)
-  showControls.value = true
-  videoRef.value.src = `file:///${localFilePath.value}`
-  videoRef.value.play()
+  if (videoRef.value) {
+    videoRef.value.src = '' // 清除之前的 src
+    videoRef.value.srcObject = null // 确保清除任何现有的媒体流
+    console.log('replay', localFilePath.value)
+    showControls.value = true
+    videoRef.value.src = `file:///${localFilePath.value}`
+    videoRef.value.play()
+  }
 }
 
 const openSettingDialog = async () => {
@@ -668,13 +669,13 @@ const openSettingDialog = async () => {
 
 const changeVideoInput = async (val) => {
   const videoinputDevice = videoinputDevices.value.find((e) => e.label === val)
-  globalConfigStore.config.videoinputDeviceId = videoinputDevice.deviceId
+  globalConfigStore.config.videoinputDeviceId = videoinputDevice?.deviceId as string
   reloadDevice()
 }
 
 const changeAudioInput = (val) => {
   const audioinputDevice = audioinputDevices.value.find((e) => e.label === val)
-  globalConfigStore.config.audioinputDeviceId = audioinputDevice.deviceId
+  globalConfigStore.config.audioinputDeviceId = audioinputDevice?.deviceId as string
   reloadDevice()
 }
 
@@ -691,10 +692,15 @@ const reloadDevice = async () => {
     }
     mediaStream = await navigator.mediaDevices.getUserMedia({
       audio,
-      video: { ...videoConfig.value, deviceId: globalConfigStore.config.videoinputDeviceId }
+      video: {
+        ...videoConfig.value,
+        deviceId: globalConfigStore.config.videoinputDeviceId!
+      }
     })
-    videoRef.value.src = null
-    videoRef.value.srcObject = mediaStream
+    if (videoRef.value) {
+      videoRef.value.src = ''
+      videoRef.value.srcObject = mediaStream
+    }
   } catch (error) {
     console.error('获取媒体设备失败:', error)
     ElMessage.error('当前设备不可用, 请检查设备是否正常!')
@@ -750,6 +756,7 @@ video,
 }
 
 .small-notification .el-notification__icon {
-  font-size: 12px !important; /* 图标大小 */
+  // 图标大小
+  font-size: 12px !important;
 }
 </style>
