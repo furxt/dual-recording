@@ -1,5 +1,5 @@
 import { IpcMainInvokeEvent } from 'electron'
-import utils from '../utils'
+import utils from '@main/utils'
 import { autoUpdateOnHandlerMap } from './autoUpdate'
 import { commonOnHandlerMap } from './common'
 

@@ -1,7 +1,7 @@
 import { autoUpdater } from 'electron-updater'
 import { logger as logUtils, send } from './index'
-import { mainWindow } from '../index'
-import { UPDATE_AVAILABLE, DOWNLOAD_PROGRESS, UPDATE_DOWNLOADED } from '../../constant'
+import { mainWindow } from '@main/index'
+import { UPDATE_AVAILABLE, DOWNLOAD_PROGRESS, UPDATE_DOWNLOADED } from '@constant/index'
 /**
  * 用户确定是否下载更新
  */

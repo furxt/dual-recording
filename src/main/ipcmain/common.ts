@@ -1,8 +1,8 @@
 import { app } from 'electron'
 import { is } from '@electron-toolkit/utils'
-import { mainWindow } from '../index'
-import utils from '../utils'
-import { WINDOW_CLOSE, WINDOW_MINIMIZE, RELAUNCH, APP_VERSION, VIDEO_CONFIG } from '../../constant'
+import { mainWindow } from '@main/index'
+import utils from '@main/utils'
+import { WINDOW_CLOSE, WINDOW_MINIMIZE, RELAUNCH, APP_VERSION, VIDEO_CONFIG } from '@constant/index'
 import type { VoidFunction } from './onHandler'
 import type { HandleFunction } from './handleHandler'
 

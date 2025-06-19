@@ -15,6 +15,12 @@ export default defineConfig(({ mode }) => {
       plugins: [externalizeDepsPlugin()],
       define: {
         __APP_ENV__: JSON.stringify(mode)
+      },
+      resolve: {
+        alias: {
+          '@main': resolve('src/main'),
+          '@constant': resolve('src/constant')
+        }
       }
     },
     preload: {

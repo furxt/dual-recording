@@ -1,6 +1,6 @@
 import { BrowserWindow, shell, NativeImage } from 'electron'
 import { is, platform } from '@electron-toolkit/utils'
-import { CLOSE_WINDOW } from '../../constant'
+import { CLOSE_WINDOW } from '@constant/index'
 import path from 'path'
 import utils from './index'
 

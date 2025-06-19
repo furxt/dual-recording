@@ -1,11 +1,11 @@
 import fs from 'fs'
 import path from 'path'
 import axios from 'axios'
-import utils from '../utils'
+import utils from '@main/utils'
 import { IpcMainInvokeEvent } from 'electron'
 import type { HandleFunction } from './handleHandler'
-import { UPLOAD_FILE, UPDATE_UPLOAD_PROGRESS } from '../../constant'
-import { mainWindow } from '..'
+import { UPLOAD_FILE, UPDATE_UPLOAD_PROGRESS } from '@constant/index'
+import { mainWindow } from '@main/index'
 
 const {
   logger: { logger }

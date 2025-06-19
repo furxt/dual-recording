@@ -4,7 +4,7 @@ import crypto from 'crypto'
 import utils from './index'
 import { is } from '@electron-toolkit/utils'
 import { app, BrowserWindow } from 'electron'
-import { CATCH_ERROR } from '../../constant'
+import { CATCH_ERROR } from '@constant/index'
 
 // 打包时的环境 development | production | test
 export const APP_ENV = __APP_ENV__

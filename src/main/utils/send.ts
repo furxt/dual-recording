@@ -1,5 +1,5 @@
 import { BrowserWindow } from 'electron'
-import { APP_PAGE, RECORD_PAGE } from '../../constant'
+import { APP_PAGE, RECORD_PAGE } from '@constant/index'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const sendApp = (window: BrowserWindow, code: string, ...args: any[]): void => {
   window.webContents.send(APP_PAGE, code, ...args)

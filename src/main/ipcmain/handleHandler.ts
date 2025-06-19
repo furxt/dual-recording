@@ -4,7 +4,7 @@ import { autoUpdateHandleHandlerMap } from './autoUpdate'
 import { logHandleHandlerMap } from './logger'
 import { videoHandleHandlerMap } from './saveVideo'
 import { uploadFileHandleHandlerMap } from './uploadFile'
-import utils from '../utils'
+import utils from '@main/utils'
 
 class HandleHandler {
   private handlerMap = new Map<string, HandleFunction>()

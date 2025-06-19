@@ -2,9 +2,9 @@ import fs from 'fs'
 import path from 'path'
 import { spawn } from 'child_process'
 import { app, dialog } from 'electron'
-import { globalConf } from '.'
+import { globalConf } from './index'
 import { logger } from './logger'
-import { mainWindow } from '..'
+import { mainWindow } from '@main/index'
 import { platform } from '@electron-toolkit/utils'
 
 export const getFfmpegPath = (): string => {

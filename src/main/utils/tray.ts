@@ -1,6 +1,6 @@
 import { app, Tray, Menu } from 'electron'
 import { common, globalConf, ffmpeg, send } from './index'
-import { PRIMARY_MESSAGE, CHANGE_RESOLUTION } from '../../constant'
+import { PRIMARY_MESSAGE, CHANGE_RESOLUTION } from '@constant/index'
 import path from 'path'
 export const createTray = (mainWindow: Electron.BrowserWindow): void => {
   const { windowSizeArray } = common

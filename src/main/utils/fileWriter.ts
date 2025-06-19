@@ -1,5 +1,5 @@
 import fs from 'fs'
-import utils from '.'
+import utils from './index'
 
 class FileWriter {
   private logger = utils.logger.logger

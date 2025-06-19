@@ -20,7 +20,6 @@
 
 <script setup lang="ts">
 import type { LoadingInstance } from 'element-plus/es/components/loading/src/loading'
-import { useGlobalConfigStore } from '@renderer/stores'
 import utils from './utils'
 import {
   DOWNLOAD_UPDATE,

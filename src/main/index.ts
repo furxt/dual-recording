@@ -1,9 +1,9 @@
 import { app, BrowserWindow, dialog } from 'electron'
 import { electronApp, optimizer, is, platform } from '@electron-toolkit/utils'
+import { DOWNLOAD_UPDATE } from '@constant/index'
 import icon from '../../resources/icon.png?asset'
 import utils from './utils'
 import './ipcmain'
-import { DOWNLOAD_UPDATE } from '../constant'
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
