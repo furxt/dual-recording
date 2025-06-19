@@ -68,8 +68,8 @@ if (!app.requestSingleInstanceLock()) {
 
 // 默认双击应用程序（桌面快捷方式）打开，还有一种是通过浏览器使用自定义协议打开
 export let startByApp = true
-// 通过浏览器打开应用时传递进来的参数
-export let openParam
+// 通过浏览器打开应用时传递进来的参数，理论上来说这里应该支持多个类型，每个业务类型都应该有对应的处理逻辑
+export let openParam: object
 
 app.whenReady().then(async () => {
   const protocols = 'dualrecording://'
@@ -101,7 +101,7 @@ app.whenReady().then(async () => {
   mainWindow = await utils.window.createMainWindow(icon)
   utils.tray.createTray(mainWindow)
 
-  app.on('activate', function () {
+  app.on('activate', () => {
     // On macOS it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) utils.window.createMainWindow(icon)

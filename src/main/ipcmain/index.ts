@@ -7,8 +7,10 @@ import './saveVideo'
 import './uploadFile'
 import './autoUpdate'
 
-const { logger } = utils.logger
-const { localConf, WINDOW_SIZE } = utils.globalConf
+const {
+  logger: { logger },
+  globalConf: { localConf, WINDOW_SIZE }
+} = utils
 
 /**
  * 退出应用
@@ -25,13 +27,6 @@ ipcMain.on('quit', () => {
   Menu.buildFromTemplate(template).popup()
 })
 
-/**
- * 获取应用路径
- */
-ipcMain.handle('getAppPath', () => {
-  return is.dev ? app.getAppPath() : app.getPath('exe')
-})
-
 // 获取应用版本
 ipcMain.handle('app-version', () => {
   return app.getVersion()
@@ -44,19 +39,18 @@ ipcMain.handle('get-video-config', () => {
 })
 
 // 关闭窗口
-ipcMain.on('window-close', async () => {
+ipcMain.on('window-close', () => {
   mainWindow?.removeAllListeners('close') // 移除监听器避免循环
   app.quit()
-  // mainWindow.close(); // 真正关闭窗口
 })
 
 // 最小化窗口
-ipcMain.on('window-minimize', async () => {
+ipcMain.on('window-minimize', () => {
   mainWindow?.minimize()
 })
 
 // 重启
-ipcMain.on('relaunch', async () => {
+ipcMain.on('relaunch', () => {
   logger.info('重启中...')
   if (!is.dev) {
     mainWindow?.removeAllListeners('close') // 移除监听器避免循环

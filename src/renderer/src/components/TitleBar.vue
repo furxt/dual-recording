@@ -18,11 +18,11 @@
 
 <script setup lang="ts">
 import { Close, Minus } from '@icon-park/vue-next'
-function minimizeWindow() {
+const minimizeWindow = () => {
   window.electron.ipcRenderer.send('window-minimize')
 }
 
-function closeWindow() {
+const closeWindow = () => {
   ElMessageBox.confirm('确认退出吗?', '警告', {
     confirmButtonText: '确认',
     cancelButtonText: '取消',

@@ -6,7 +6,7 @@ import utils from '.'
 export const createMainWindow = async (icon?: NativeImage | string): Promise<BrowserWindow> => {
   // 如果之前存在 mainWindow，则先关闭它
 
-  let mainWindow: BrowserWindow | null | undefined = new BrowserWindow({
+  let mainWindow: BrowserWindow | null = new BrowserWindow({
     show: false,
     // alwaysOnTop: true, // 窗口置顶
     autoHideMenuBar: true,

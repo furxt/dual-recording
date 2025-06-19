@@ -1,5 +1,7 @@
-import { app } from 'electron'
 import path from 'path'
+import fs from 'fs'
+import crypto from 'crypto'
+import { app, BrowserWindow } from 'electron'
 import { is } from '@electron-toolkit/utils'
 
 // 打包时的环境 development | production | test
@@ -29,12 +31,12 @@ export const windowSizeArray: WindowSizeInfo[] = [
   }
 ]
 
-export const sendError = (window, errorMsg): void => {
+export const sendError = (window: BrowserWindow, errorMsg: string): void => {
   window.webContents.send('catch-error', errorMsg)
 }
 
 // 在主进程 main.js 中
-export const sleep = async (ms): Promise<void> => {
+export const sleep = async (ms: number): Promise<void> => {
   return new Promise((resolve) => {
     const timer = setTimeout(() => {
       resolve()
@@ -55,11 +57,47 @@ ${error.stack || '(无堆栈信息)'}
 `
 }
 
+/**
+ * 计算单个 chunk 的 MD5
+ * @param {string} filePath
+ * @param {number} offset
+ * @param {number} size
+ * @returns {Promise<string>}
+ */
+export const getChunkMD5 = (
+  flag: boolean,
+  filePath: string,
+  offset: number,
+  size: number
+): Promise<FileHashResult> => {
+  return new Promise((resolve, reject) => {
+    const buffers: Buffer[] = []
+    const hash = crypto.createHash('md5')
+    const stream = fs.createReadStream(filePath, { start: offset, end: offset + size - 1 })
+
+    stream.on('data', (chunk) => {
+      hash.update(chunk)
+      if (flag) {
+        buffers.push(chunk as Buffer)
+      }
+    })
+
+    stream.on('end', () => {
+      resolve({ md5: hash.digest('hex'), buffer: Buffer.concat(buffers) })
+    })
+
+    stream.on('error', (err) => {
+      reject(err)
+    })
+  })
+}
+
 export default {
   rootDir,
   videoDir,
   windowSizeArray,
   sendError,
   sleep,
-  generateErrorMsg
+  generateErrorMsg,
+  getChunkMD5
 }

@@ -1,7 +1,9 @@
 import fs from 'fs'
 import path from 'path'
+import { spawn } from 'child_process'
 import { app, dialog } from 'electron'
-import { globalConf, logger as logUtils } from '.'
+import { globalConf } from '.'
+import { logger } from './logger'
 import { mainWindow } from '..'
 import { platform } from '@electron-toolkit/utils'
 
@@ -47,7 +49,7 @@ export const setFfmpegHomePath = async (initFlag): Promise<void> => {
 
   const selectedFolderPath = result.filePaths[0]
 
-  logUtils.logger.info(`用户选择的配置ffmpeg文件夹: ${selectedFolderPath}`)
+  logger.info(`用户选择的配置ffmpeg文件夹: ${selectedFolderPath}`)
 
   const ffmpegPath = path.join(selectedFolderPath, 'bin', 'ffmpeg.exe')
   if (!fs.existsSync(ffmpegPath)) {
@@ -78,8 +80,54 @@ const confirmSetFfmpegHomePath = async (initFlag): Promise<void> => {
   }
 }
 
+/**
+ * 运行 FFmpeg 任务
+ * @param ffmpegPath FFmpeg 的路径
+ * @param args FFmpeg 的参数
+ */
+export const runFFmpegTranscode = (ffmpegPath: string, args: string[]): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    const ffmpeg = spawn(ffmpegPath, args)
+
+    // let stdoutBuffer = ''
+    // 监听标准输出（stdout）
+    // ffmpeg.stdout.on('data', (data) => {
+    //   const output = data.toString()
+    //   stdoutBuffer += output
+    // })
+
+    // 监听错误输出（stderr）
+    let stderrBuffer = ''
+    ffmpeg.stderr.on('data', (data) => {
+      const errorOutput = data.toString()
+      stderrBuffer += errorOutput
+      // logger.error(`FFmpeg 执行时的错误信息: ${errorOutput}`) // 实时打印 stderr
+    })
+
+    ffmpeg.on('close', (code) => {
+      if (code === 0) {
+        logger.success(`FFmpeg 执行命令【${ffmpegPath} ${args.join(' ')}】成功`)
+        resolve()
+      } else {
+        const errorMessage = `FFmpeg 执行命令【${ffmpegPath} ${args.join(' ')}】失败, 退出码: ${code}\nstderr 完整输出:\n${stderrBuffer}`
+        logger.error(errorMessage)
+        reject(new Error(errorMessage))
+      }
+    })
+
+    ffmpeg.on('error', (err) => {
+      logger.error(`启动 FFmpeg 时发生错误: ${err.message}`)
+      reject(err)
+    })
+
+    // 如果你想主动中断任务，可以调用 ffmpeg.kill()
+    // ffmpeg.kill(); // 手动杀死子进程
+  })
+}
+
 export default {
   getFfmpegPath,
   checkFfmpegHomePath,
-  setFfmpegHomePath
+  setFfmpegHomePath,
+  runFFmpegTranscode
 }

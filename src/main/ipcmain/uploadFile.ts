@@ -2,11 +2,12 @@ import fs from 'fs'
 import path from 'path'
 import axios from 'axios'
 import { ipcMain } from 'electron'
-import crypto from 'crypto'
-import { logger as logUtils } from '../utils'
+import utils from '../utils'
 import { mainWindow } from '..'
 
-const logger = logUtils.logger
+const {
+  logger: { logger }
+} = utils
 // 配置
 const CHUNK_SIZE = 1024 * 1024 * 2 // 2MB per chunk
 
@@ -56,7 +57,12 @@ const uploadFile = async (
       const end = Math.min(fileSize - 1, start + CHUNK_SIZE - 1) // 注意结束位置是闭区间
       const chunkSize = end - start + 1
       // 计算分片的 MD5
-      const { md5: chunkMD5, buffer } = await getChunkMD5(true, localFilePath, start, chunkSize)
+      const { md5: chunkMD5, buffer } = await utils.common.getChunkMD5(
+        true,
+        localFilePath,
+        start,
+        chunkSize
+      )
       const formData = new FormData()
       formData.append('file', new Blob([buffer]), `${i}`) // 模拟文件对象
       // formData.append('fileId', fileId)
@@ -98,7 +104,7 @@ const uploadFile = async (
     } else {
       logger.success(`${fileId} 文件合并完成`)
     }
-    const { md5: fileMD5 } = await getChunkMD5(false, localFilePath, 0, fileSize)
+    const { md5: fileMD5 } = await utils.common.getChunkMD5(false, localFilePath, 0, fileSize)
 
     const {
       data: { code: resultCode }
@@ -113,44 +119,4 @@ const uploadFile = async (
     logger.error(`文件上传失败:\n${err}`)
   }
   return Promise.resolve(result)
-}
-
-/**
- * 计算单个 chunk 的 MD5
- * @param {string} filePath
- * @param {number} offset
- * @param {number} size
- * @returns {Promise<string>}
- */
-async function getChunkMD5(
-  flag: boolean,
-  filePath: string,
-  offset: number,
-  size: number
-): Promise<HashResult> {
-  return new Promise((resolve, reject) => {
-    const buffers: Buffer[] = []
-    const hash = crypto.createHash('md5')
-    const stream = fs.createReadStream(filePath, { start: offset, end: offset + size - 1 })
-
-    stream.on('data', (chunk) => {
-      hash.update(chunk)
-      if (flag) {
-        buffers.push(chunk as Buffer)
-      }
-    })
-
-    stream.on('end', () => {
-      resolve({ md5: hash.digest('hex'), buffer: Buffer.concat(buffers) })
-    })
-
-    stream.on('error', (err) => {
-      reject(err)
-    })
-  })
-}
-
-interface HashResult {
-  md5: string // hash.digest('hex') 返回十六进制字符串
-  buffer: Buffer // Buffer.concat 返回新的 Buffer 实例
 }

@@ -155,6 +155,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { dayjs } from 'element-plus'
 import { GoAhead, Logout, PauseOne, ReplayMusic, Setting, Upload, Video } from '@icon-park/vue-next'
 import { useGlobalConfigStore } from '@renderer/stores'
+import type { LoadingInstance } from 'element-plus/es/components/loading/src/loading'
 
 window.electron.ipcRenderer.on('change-resolution', () => {
   if (isRecording.value) {
@@ -340,7 +341,7 @@ let lastDisplayedTime = dayjs().format('YYYY-MM-DD HH:mm:ss') // 初始化为当
 // 新增一个数组用于存储时间戳映射
 const frameTimestamps = []
 
-function drawOverlay(timestamp: number) {
+const drawOverlay = (timestamp: number) => {
   const video = videoRef.value
   const canvas = canvasRef.value
 
@@ -398,7 +399,7 @@ const saveChunkToDB = async (data, uuid, chunkId) => {
   frameTimestamps.length = 0
 }
 
-async function startRecording() {
+const startRecording = async () => {
   if (!mediaStream || isRecording.value) return
 
   await reloadDevice()
@@ -483,12 +484,11 @@ async function startRecording() {
   }
 
   mediaRecorder.start(1000 * 30)
-  // drawOverlay(performance.now())
   startDrawLoop()
 }
 
 let animationIntervalId: NodeJS.Timeout | null = null
-function startDrawLoop() {
+const startDrawLoop = () => {
   const loop = () => {
     drawOverlay(performance.now())
     animationIntervalId = setTimeout(loop, FRAME_INTERVAL) // 更可控
@@ -497,7 +497,7 @@ function startDrawLoop() {
 }
 
 // 切换播放/暂停状态
-function togglePlay() {
+const togglePlay = () => {
   const video = videoRef.value
   if (video?.paused) {
     video.play()
@@ -506,7 +506,7 @@ function togglePlay() {
   }
 }
 
-function pauseRecording() {
+const pauseRecording = () => {
   if (mediaRecorder && mediaRecorder.state === 'recording') {
     mediaRecorder.pause()
     clearTimeout(animationIntervalId as NodeJS.Timeout)
@@ -518,7 +518,7 @@ function pauseRecording() {
   }
 }
 
-function resumeRecording() {
+const resumeRecording = () => {
   if (mediaRecorder && mediaRecorder.state === 'paused') {
     disablePauseBtn.value = false
     disableResumeBtn.value = true
@@ -530,8 +530,8 @@ function resumeRecording() {
   }
 }
 
-let loading
-function stopRecording() {
+let loading: LoadingInstance
+const stopRecording = () => {
   if (mediaRecorder && mediaRecorder.state !== 'inactive') {
     loading = ElLoading.service({
       lock: true,
@@ -630,7 +630,7 @@ const openSettingDialog = async () => {
   await loadDevices()
 }
 
-const changeVideoInput = async (val) => {
+const changeVideoInput = (val) => {
   const videoinputDevice = videoinputDevices.value.find((e) => e.label === val)
   globalConfigStore.config.videoinputDeviceId = videoinputDevice?.deviceId as string
   reloadDevice()

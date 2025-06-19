@@ -1,18 +1,19 @@
-import { ipcMain } from 'electron'
 import fs from 'fs'
 import path from 'path'
-import { spawn } from 'child_process'
 import PQueue from 'p-queue'
 import utils, { FileWriter } from '../utils'
+import { ipcMain } from 'electron'
 import { mainWindow } from '..'
 
 const { videoDir } = utils.common
 const { logger } = utils.logger
-const { getFfmpegPath } = utils.ffmpeg
+const { getFfmpegPath, runFFmpegTranscode } = utils.ffmpeg
 
 let fileWriter: FileWriter | null
-// 串行队列
-let queue
+
+// @ts-expect-error 因为项目打包方式的问题，这里我们使用默认导出，但p-queue又不支持commonjs，所以这一行忽略 el-lint 检查错误
+const queue: PQueue = new PQueue.default({ concurrency: 1 }) // 串行队列
+
 ipcMain.handle('save-chunk', async (_event, { buffer, uuid, chunkId }) => {
   const folderPath = path.join(videoDir, uuid)
   if (!fs.existsSync(folderPath)) {
@@ -20,19 +21,18 @@ ipcMain.handle('save-chunk', async (_event, { buffer, uuid, chunkId }) => {
     logger.success(`${folderPath} 文件夹创建成功`)
   }
 
-  // 创建串行队列
-  if (!queue) {
-    if (queue) await queue.onIdle()
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    queue = new (PQueue as any).default({ concurrency: 1 }) // ⚠️ 牺牲类型安全
-  }
-
   // 写入 webm 分片文件
   const outputFilePath = path.join(folderPath, uuid)
   if (!fileWriter) {
     fileWriter = new FileWriter(outputFilePath)
   }
-  queue.add(() => fileWriter?.append(Buffer.from(buffer), chunkId))
+  // queue?.add(() => fileWriter?.append(Buffer.from(buffer), chunkId))
+  queue.add(() => {
+    if (!fileWriter) {
+      return Promise.reject(new Error('fileWriter 未初始化'))
+    }
+    return fileWriter.append(Buffer.from(buffer), chunkId)
+  })
   return { success: true }
 })
 
@@ -45,7 +45,6 @@ ipcMain.handle('repair-video', async (_event, { uuid }) => {
   try {
     // 等待所有分片写完
     await queue.onIdle()
-
     fileWriter?.close().then(() => {
       fileWriter = null
     })
@@ -97,44 +96,3 @@ ipcMain.handle('repair-video', async (_event, { uuid }) => {
     return { success: false, error: '录像本地保存失败' }
   }
 })
-
-const runFFmpegTranscode = (ffmpegPath, args): Promise<void> => {
-  return new Promise((resolve, reject) => {
-    const ffmpeg = spawn(ffmpegPath, args)
-
-    // let stdoutBuffer = ''
-    // 监听标准输出（stdout）
-    // ffmpeg.stdout.on('data', (data) => {
-    //   const output = data.toString()
-    //   stdoutBuffer += output
-    // })
-
-    // 监听错误输出（stderr）
-    let stderrBuffer = ''
-    ffmpeg.stderr.on('data', (data) => {
-      const errorOutput = data.toString()
-      stderrBuffer += errorOutput
-      // logger.error(`FFmpeg 执行时的错误信息: ${errorOutput}`) // 实时打印 stderr
-    })
-
-    ffmpeg.on('close', (code) => {
-      if (code === 0) {
-        logger.success(`FFmpeg 执行命令【${ffmpegPath} ${args.join(' ')}】成功`)
-        resolve()
-      } else {
-        const errorMessage = `FFmpeg 执行命令【${ffmpegPath} ${args.join(' ')}】失败, 退出码: ${code}\nstderr 完整输出:\n${stderrBuffer}`
-        logger.error(errorMessage)
-        reject(new Error(errorMessage))
-      }
-      // ffmpeg = null
-    })
-
-    ffmpeg.on('error', (err) => {
-      logger.error(`启动 FFmpeg 时发生错误: ${err.message}`)
-      reject(err)
-    })
-
-    // 如果你想主动中断任务，可以调用 ffmpeg.kill()
-    // ffmpeg.kill(); // 手动杀死子进程
-  })
-}
