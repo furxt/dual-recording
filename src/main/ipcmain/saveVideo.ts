@@ -2,8 +2,10 @@ import fs from 'fs'
 import path from 'path'
 import PQueue from 'p-queue'
 import utils, { FileWriter } from '../utils'
-import { ipcMain } from 'electron'
-import { mainWindow } from '..'
+import { IpcMainInvokeEvent } from 'electron'
+import { mainWindow } from '../index'
+import type { HandleFunction } from './handleHandler'
+import { SAVE_CHUNK, REPAIR_VIDEO, TRANSCODE_COMPLETE } from '../../constant'
 
 const { videoDir } = utils.common
 const { logger } = utils.logger
@@ -14,7 +16,13 @@ let fileWriter: FileWriter | null
 // @ts-expect-error 因为项目打包方式的问题，这里我们使用默认导出，但p-queue又不支持commonjs，所以这一行忽略 el-lint 检查错误
 const queue: PQueue = new PQueue.default({ concurrency: 1 }) // 串行队列
 
-ipcMain.handle('save-chunk', async (_event, { buffer, uuid, chunkId }) => {
+/**
+ * 保存分片
+ */
+const saveChunk = async (
+  _event: IpcMainInvokeEvent,
+  { buffer, uuid, chunkId }
+): Promise<Result<void>> => {
   const folderPath = path.join(videoDir, uuid)
   if (!fs.existsSync(folderPath)) {
     fs.mkdirSync(folderPath, { recursive: true })
@@ -34,9 +42,12 @@ ipcMain.handle('save-chunk', async (_event, { buffer, uuid, chunkId }) => {
     return fileWriter.append(Buffer.from(buffer), chunkId)
   })
   return { success: true }
-})
+}
 
-ipcMain.handle('repair-video', async (_event, { uuid }) => {
+/**
+ * 修复视频时间戳
+ */
+const repairVideo = async (_event: IpcMainInvokeEvent, { uuid }): Promise<Result<string>> => {
   const ffmpegPath = getFfmpegPath()
   const totalFragmentFile = path.join(videoDir, uuid, uuid)
   const webmVideoPath = path.join(videoDir, uuid, `${uuid}.webm`)
@@ -81,7 +92,7 @@ ipcMain.handle('repair-video', async (_event, { uuid }) => {
         logger.info(`开始转码 ${webmVideoPath} 文件...`)
         runFFmpegTranscode(ffmpegPath, ffmpegArgs).then(() => {
           logger.success(`ffmpeg ${webmVideoPath} 文件转码成功, 已生成 ${mp4VideoPath} 文件`)
-          mainWindow?.webContents.send('transcode-complete')
+          utils.send.sendRecord(mainWindow!, TRANSCODE_COMPLETE)
         })
         resolve()
       } catch (err) {
@@ -95,4 +106,9 @@ ipcMain.handle('repair-video', async (_event, { uuid }) => {
     logger.error(`修复 ${totalFragmentFile} 文件时间戳失败: ${error}`)
     return { success: false, error: '录像本地保存失败' }
   }
-})
+}
+
+export const videoHandleHandlerMap = new Map<string, HandleFunction>([
+  [SAVE_CHUNK, saveChunk],
+  [REPAIR_VIDEO, repairVideo]
+])

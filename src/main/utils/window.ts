@@ -1,7 +1,8 @@
 import { BrowserWindow, shell, NativeImage } from 'electron'
 import { is, platform } from '@electron-toolkit/utils'
+import { CLOSE_WINDOW } from '../../constant'
 import path from 'path'
-import utils from '.'
+import utils from './index'
 
 export const createMainWindow = async (icon?: NativeImage | string): Promise<BrowserWindow> => {
   // 如果之前存在 mainWindow，则先关闭它
@@ -55,7 +56,7 @@ export const createMainWindow = async (icon?: NativeImage | string): Promise<Bro
   // 监听窗口关闭事件
   mainWindow.on('close', (event) => {
     event.preventDefault()
-    mainWindow?.webContents.send('close-window')
+    utils.send.sendApp(mainWindow!, CLOSE_WINDOW)
   })
 
   // 窗口关闭后释放引用

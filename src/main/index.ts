@@ -3,6 +3,7 @@ import { electronApp, optimizer, is, platform } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import utils from './utils'
 import './ipcmain'
+import { DOWNLOAD_UPDATE } from '../constant'
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
@@ -13,6 +14,8 @@ const {
   logger: { logger },
   common: { generateErrorMsg }
 } = utils
+
+logger.success(DOWNLOAD_UPDATE)
 
 // 主进程全局异常捕获
 process.on('uncaughtException', (error, origin) => {

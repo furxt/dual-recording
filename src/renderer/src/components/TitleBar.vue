@@ -18,8 +18,10 @@
 
 <script setup lang="ts">
 import { Close, Minus } from '@icon-park/vue-next'
+import utils from '@renderer/utils'
+import { WINDOW_CLOSE, WINDOW_MINIMIZE, APP_VERSION } from '@constant/index'
 const minimizeWindow = () => {
-  window.electron.ipcRenderer.send('window-minimize')
+  utils.ipcRenderer.send(WINDOW_MINIMIZE)
 }
 
 const closeWindow = () => {
@@ -28,13 +30,13 @@ const closeWindow = () => {
     cancelButtonText: '取消',
     type: 'warning'
   }).then(() => {
-    window.electron.ipcRenderer.send('window-close')
+    utils.ipcRenderer.send(WINDOW_CLOSE)
   })
 }
 
 const version = ref('')
 onMounted(async () => {
-  version.value = await window.electron.ipcRenderer.invoke('app-version')
+  version.value = await utils.ipcRenderer.invoke(APP_VERSION)
 })
 </script>
 

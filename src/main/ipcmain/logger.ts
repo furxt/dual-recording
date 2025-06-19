@@ -1,8 +1,13 @@
-import { ipcMain } from 'electron'
+import { IpcMainInvokeEvent } from 'electron'
 import utils from '../utils'
+import type { HandleFunction } from './handleHandler'
+import { RECORD_LOG } from '../../constant'
 
-// 主进程处理定义
-ipcMain.handle('logger', (_event, level, arg) => {
+const recordLog = (
+  _event: IpcMainInvokeEvent,
+  level: string = 'info',
+  arg: string | string[]
+): void => {
   const { logger } = utils.logger
   switch (level) {
     case 'info':
@@ -21,4 +26,6 @@ ipcMain.handle('logger', (_event, level, arg) => {
       logger.info(arg)
       break
   }
-})
+}
+
+export const logHandleHandlerMap = new Map<string, HandleFunction>([[RECORD_LOG, recordLog]])

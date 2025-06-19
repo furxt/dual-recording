@@ -1,8 +1,10 @@
 import fs from 'fs'
 import path from 'path'
 import axios from 'axios'
-import { ipcMain } from 'electron'
 import utils from '../utils'
+import { IpcMainInvokeEvent } from 'electron'
+import type { HandleFunction } from './handleHandler'
+import { UPLOAD_FILE, UPDATE_UPLOAD_PROGRESS } from '../../constant'
 import { mainWindow } from '..'
 
 const {
@@ -13,32 +15,11 @@ const CHUNK_SIZE = 1024 * 1024 * 2 // 2MB per chunk
 
 const REQUEST_HEADERS = {}
 
-ipcMain.handle(
-  'upload-file',
-  async (
-    _event,
-    { localFilePath: webmFilePath, serverUrl, apiPrefix, saveChunkUrl, mergeChunkUrl, checkFileUrl }
-  ) => {
-    const localFilePath = webmFilePath.slice(0, -5) + '.mp4'
-    const result = await uploadFile(
-      localFilePath,
-      serverUrl,
-      apiPrefix,
-      saveChunkUrl,
-      mergeChunkUrl,
-      checkFileUrl
-    )
-    return result
-  }
-)
 const uploadFile = async (
-  localFilePath: string,
-  serverUrl: string,
-  apiPrefix: string,
-  saveChunkUrl: string,
-  mergeChunkUrl: string,
-  checkFileUrl: string
+  _event: IpcMainInvokeEvent,
+  { localFilePath, serverUrl, apiPrefix, saveChunkUrl, mergeChunkUrl, checkFileUrl }
 ): Promise<Result<void>> => {
+  localFilePath = localFilePath.slice(0, -5) + '.mp4'
   const UPLOAD_URL = `${serverUrl}${apiPrefix}${saveChunkUrl}`
   const MERGE_URL = `${serverUrl}${apiPrefix}${mergeChunkUrl}`
   const CHECK_URL = `${serverUrl}${apiPrefix}${checkFileUrl}`
@@ -48,7 +29,6 @@ const uploadFile = async (
   }
   try {
     const fileSize = (await fs.promises.stat(localFilePath)).size
-    // const fileId = uuidv4().replace(/-/g, '')
     const fileId = path.basename(localFilePath, path.extname(localFilePath))
     const totalChunks = Math.ceil(fileSize / CHUNK_SIZE)
     logger.info(`开始上传文件: ${localFilePath}, 共 ${totalChunks} 个分片, fileId: ${fileId}`)
@@ -63,14 +43,14 @@ const uploadFile = async (
         start,
         chunkSize
       )
+
       const formData = new FormData()
       formData.append('file', new Blob([buffer]), `${i}`) // 模拟文件对象
-      // formData.append('fileId', fileId)
       formData.append('chunkIndex', `${i}`)
       formData.append('chunkMD5', chunkMD5)
       formData.append('totalChunks', `${totalChunks}`)
-
       logger.info(`正在上传 ${fileId} 的第 ${i + 1}/${totalChunks} 片...`)
+
       const {
         data: { code }
       } = await axios.post(`${UPLOAD_URL}/${fileId}`, formData, {
@@ -80,13 +60,12 @@ const uploadFile = async (
 
       if (code !== 1) {
         logger.error(`上传 ${fileId} 的第 ${i + 1}/${totalChunks} 片失败`)
-        return Promise.resolve(result)
+        return result
       } else {
-        mainWindow?.webContents.send('update-upload-progress', {
+        utils.send.sendRecord(mainWindow!, UPDATE_UPLOAD_PROGRESS, {
           index: i + 1,
           total: totalChunks
         })
-
         logger.success(`${fileId} 的第 ${i + 1} 分片上传成功`)
       }
 
@@ -100,7 +79,7 @@ const uploadFile = async (
     } = await axios.get(`${MERGE_URL}/${fileId}`, { params: { totalChunks } })
     if (code !== 1) {
       logger.error(`通知后端合并文件 ${fileId} 失败`)
-      return Promise.resolve(result)
+      return result
     } else {
       logger.success(`${fileId} 文件合并完成`)
     }
@@ -118,5 +97,10 @@ const uploadFile = async (
   } catch (err) {
     logger.error(`文件上传失败:\n${err}`)
   }
-  return Promise.resolve(result)
+
+  return result
 }
+
+export const uploadFileHandleHandlerMap = new Map<string, HandleFunction>([
+  [UPLOAD_FILE, uploadFile]
+])

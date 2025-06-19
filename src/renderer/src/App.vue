@@ -21,15 +21,77 @@
 <script setup lang="ts">
 import type { LoadingInstance } from 'element-plus/es/components/loading/src/loading'
 import { useGlobalConfigStore } from '@renderer/stores'
+import utils from './utils'
+import {
+  DOWNLOAD_UPDATE,
+  INSTALL_UPDATE,
+  WINDOW_CLOSE,
+  CHECK_UPDATE,
+  PRIMARY_MESSAGE,
+  APP_PAGE,
+  UPDATE_AVAILABLE,
+  DOWNLOAD_PROGRESS,
+  CLOSE_WINDOW,
+  UPDATE_DOWNLOADED,
+  CATCH_ERROR
+} from '@constant/index'
 
-window.electron.ipcRenderer.on('primary-message', (_event, data) => {
-  console.log('收到主进程的消息:', data)
-  ElMessage.primary(data)
-})
-
-window.electron.ipcRenderer.on('update-conf', (_event, data) => {
-  console.log('收到主进程的消息:', data)
-  globalConfigStore.config = { ...globalConfigStore.config, ...data }
+window.electron.ipcRenderer.on(APP_PAGE, (_event, code, data) => {
+  if (code === PRIMARY_MESSAGE) {
+    console.log('常规提示消息', data)
+    ElMessage.primary(data)
+  } else if (code === UPDATE_AVAILABLE) {
+    console.log('检测到有新版本可以更新')
+    ElMessageBox.confirm(`检测到有新版本 ${data} 可用，是否下载更新？`, '更新提示', {
+      closeOnClickModal: false,
+      confirmButtonText: '确认',
+      cancelButtonText: '取消',
+      type: 'primary'
+    }).then(() => {
+      utils.ipcRenderer.send(DOWNLOAD_UPDATE)
+      loading = ElLoading.service({
+        lock: true,
+        background: 'rgba(250, 250, 250, 0.7)', // 白色半透明背景
+        customClass: 'transparent-loading' // 自定义类名
+      })
+      isDownloadUpdateApp.value = true
+    })
+  } else if (code === DOWNLOAD_PROGRESS) {
+    console.log('下载更新进度条')
+    percentage.value = data
+  } else if (code === CLOSE_WINDOW) {
+    console.log('关闭窗口')
+    ElMessageBox.confirm('确认退出吗?', '警告', {
+      closeOnClickModal: false,
+      confirmButtonText: '确认',
+      cancelButtonText: '取消',
+      type: 'warning'
+    }).then(() => {
+      utils.ipcRenderer.send(WINDOW_CLOSE)
+    })
+  } else if (code === UPDATE_DOWNLOADED) {
+    console.log('更新下载完成')
+    setTimeout(() => {
+      if (loading) {
+        loading?.close()
+        loading = null
+      }
+      isDownloadUpdateApp.value = false
+      ElMessageBox.confirm(`下载已完成，是否立即更新？`, '更新提示', {
+        closeOnClickModal: false,
+        confirmButtonText: '确认',
+        cancelButtonText: '取消',
+        type: 'success'
+      })
+        .then(() => {
+          utils.ipcRenderer.send(INSTALL_UPDATE)
+        })
+        .catch(() => {})
+    }, 500)
+  } else if (code === CATCH_ERROR) {
+    console.log('收到node捕获的错误消息')
+    ElMessage.error(data)
+  }
 })
 
 let loading: LoadingInstance | null
@@ -44,72 +106,59 @@ const colors = [
 ]
 
 // 新版本可用
-window.electron.ipcRenderer.on('update-available', (_event, version) => {
-  ElMessageBox.confirm(`检测到有新版本 ${version} 可用，是否下载更新？`, '更新提示', {
-    closeOnClickModal: false,
-    confirmButtonText: '确认',
-    cancelButtonText: '取消',
-    type: 'primary'
-  })
-    .then(() => {
-      window.electron.ipcRenderer.send('download-update')
-      loading = ElLoading.service({
-        lock: true,
-        background: 'rgba(250, 250, 250, 0.7)', // 白色半透明背景
-        customClass: 'transparent-loading' // 自定义类名
-      })
-      isDownloadUpdateApp.value = true
-    })
-    .catch(() => {})
-})
+// window.electron.ipcRenderer.on('update-available', (_event, version) => {
+//   ElMessageBox.confirm(`检测到有新版本 ${version} 可用，是否下载更新？`, '更新提示', {
+//     closeOnClickModal: false,
+//     confirmButtonText: '确认',
+//     cancelButtonText: '取消',
+//     type: 'primary'
+//   })
+//     .then(() => {
+//       utils.ipcRenderer.send(DOWNLOAD_UPDATE)
+//       loading = ElLoading.service({
+//         lock: true,
+//         background: 'rgba(250, 250, 250, 0.7)', // 白色半透明背景
+//         customClass: 'transparent-loading' // 自定义类名
+//       })
+//       isDownloadUpdateApp.value = true
+//     })
+//     .catch(() => {})
+// })
 
 // 新版本下载进度
-window.electron.ipcRenderer.on('download-progress', (_event, downloadPercent) => {
-  percentage.value = downloadPercent
-})
-
-// 新版本下载进度
-window.electron.ipcRenderer.on('close-window', () => {
-  ElMessageBox.confirm('确认退出吗?', '警告', {
-    confirmButtonText: '确认',
-    cancelButtonText: '取消',
-    type: 'warning'
-  }).then(() => {
-    window.electron.ipcRenderer.send('window-close')
-  })
-})
+// window.electron.ipcRenderer.on('download-progress', (_event, downloadPercent) => {
+//   percentage.value = downloadPercent
+// })
 
 // 新版本下载完成
-window.electron.ipcRenderer.on('update-downloaded', () => {
-  setTimeout(() => {
-    if (loading) {
-      loading?.close()
-      loading = null
-    }
-    isDownloadUpdateApp.value = false
-    ElMessageBox.confirm(`下载已完成，是否立即更新？`, '更新提示', {
-      closeOnClickModal: false,
-      confirmButtonText: '确认',
-      cancelButtonText: '取消',
-      type: 'success'
-    })
-      .then(() => {
-        window.electron.ipcRenderer.send('install-update')
-      })
-      .catch(() => {})
-  }, 500)
-})
+// window.electron.ipcRenderer.on('update-downloaded', () => {
+//   setTimeout(() => {
+//     if (loading) {
+//       loading?.close()
+//       loading = null
+//     }
+//     isDownloadUpdateApp.value = false
+//     ElMessageBox.confirm(`下载已完成，是否立即更新？`, '更新提示', {
+//       closeOnClickModal: false,
+//       confirmButtonText: '确认',
+//       cancelButtonText: '取消',
+//       type: 'success'
+//     })
+//       .then(() => {
+//         utils.ipcRenderer.send(INSTALL_UPDATE)
+//       })
+//       .catch(() => {})
+//   }, 500)
+// })
 
-window.electron.ipcRenderer.on('catch-error', (_event, data) => {
-  console.log('收到主进程的错误消息:', data)
-  ElMessage.error(data)
-})
-
-const globalConfigStore = useGlobalConfigStore()
+// window.electron.ipcRenderer.on('catch-error', (_event, data) => {
+//   console.log('收到主进程的错误消息:', data)
+//   ElMessage.error(data)
+// })
 
 onMounted(async () => {
   // 检查更新
-  await window.electron.ipcRenderer.invoke('check-update')
+  await utils.ipcRenderer.invoke(CHECK_UPDATE)
 })
 </script>
 

@@ -1,5 +1,6 @@
 import { app, Tray, Menu } from 'electron'
-import { common, globalConf, ffmpeg } from '.'
+import { common, globalConf, ffmpeg, send } from './index'
+import { PRIMARY_MESSAGE, CHANGE_RESOLUTION } from '../../constant'
 import path from 'path'
 export const createTray = (mainWindow: Electron.BrowserWindow): void => {
   const { windowSizeArray } = common
@@ -20,33 +21,29 @@ export const createTray = (mainWindow: Electron.BrowserWindow): void => {
         {
           id: '480',
           label: '480',
-          click: (subMenu) => {
-            subMenu.checked = false
+          click: () => {
             const windowSize = windowSizeArray.find((e) => e.id === '480')
             const windowSizeArr = mainWindow.getContentSize()
+            localConf.set(WINDOW_SIZE, windowSize)
             if (windowSize && windowSizeArr.includes(windowSize.windowHeight)) {
-              localConf.set(WINDOW_SIZE, windowSize)
-              mainWindow.webContents.send('primary-message', '当前分辨率已设置为480p')
+              send.sendApp(mainWindow, PRIMARY_MESSAGE, '当前分辨率已设置为480p')
               return
             }
-            localConf.set(WINDOW_SIZE, windowSize)
-            mainWindow.webContents.send('change-resolution')
+            send.sendRecord(mainWindow, CHANGE_RESOLUTION)
           }
         },
         {
           id: '720',
           label: '720',
-          click: (subMenu) => {
-            subMenu.checked = false
+          click: () => {
             const windowSize = windowSizeArray.find((e) => e.id === '720')
             const windowSizeArr = mainWindow.getContentSize()
+            localConf.set(WINDOW_SIZE, windowSize)
             if (windowSize && windowSizeArr.includes(windowSize.windowHeight)) {
-              localConf.set(WINDOW_SIZE, windowSize)
-              mainWindow.webContents.send('primary-message', '当前分辨率已设置为720p')
+              send.sendApp(mainWindow, PRIMARY_MESSAGE, '当前分辨率已设置为720p')
               return
             }
-            localConf.set(WINDOW_SIZE, windowSize)
-            mainWindow.webContents.send('change-resolution')
+            send.sendRecord(mainWindow, CHANGE_RESOLUTION)
           }
         }
       ]

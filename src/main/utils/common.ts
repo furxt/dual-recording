@@ -1,8 +1,10 @@
 import path from 'path'
 import fs from 'fs'
 import crypto from 'crypto'
-import { app, BrowserWindow } from 'electron'
+import utils from './index'
 import { is } from '@electron-toolkit/utils'
+import { app, BrowserWindow } from 'electron'
+import { CATCH_ERROR } from '../../constant'
 
 // 打包时的环境 development | production | test
 export const APP_ENV = __APP_ENV__
@@ -32,7 +34,7 @@ export const windowSizeArray: WindowSizeInfo[] = [
 ]
 
 export const sendError = (window: BrowserWindow, errorMsg: string): void => {
-  window.webContents.send('catch-error', errorMsg)
+  utils.send.sendApp(window, CATCH_ERROR, errorMsg)
 }
 
 // 在主进程 main.js 中

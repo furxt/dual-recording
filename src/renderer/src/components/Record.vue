@@ -156,42 +156,50 @@ import { dayjs } from 'element-plus'
 import { GoAhead, Logout, PauseOne, ReplayMusic, Setting, Upload, Video } from '@icon-park/vue-next'
 import { useGlobalConfigStore } from '@renderer/stores'
 import type { LoadingInstance } from 'element-plus/es/components/loading/src/loading'
+import utils from '@renderer/utils'
+import {
+  RELAUNCH,
+  VIDEO_CONFIG,
+  SAVE_CHUNK,
+  REPAIR_VIDEO,
+  UPLOAD_FILE,
+  RECORD_PAGE,
+  CHANGE_RESOLUTION,
+  UPDATE_UPLOAD_PROGRESS,
+  TRANSCODE_COMPLETE
+} from '@constant/index'
 
-window.electron.ipcRenderer.on('change-resolution', () => {
-  if (isRecording.value) {
+window.electron.ipcRenderer.on(RECORD_PAGE, (_event, code, data) => {
+  if (code === CHANGE_RESOLUTION) {
+    if (isRecording.value) {
+      ElNotification({
+        title: '分辨率',
+        message: '修改成功，重启即可生效',
+        type: 'primary',
+        customClass: 'small-notification'
+      })
+    } else {
+      ElMessageBox.confirm('分辨率修改成功，马上重启即可生效，确认吗?', '提醒', {
+        confirmButtonText: '确认',
+        cancelButtonText: '取消',
+        type: 'primary'
+      }).then(() => {
+        utils.ipcRenderer.send(RELAUNCH)
+      })
+    }
+  } else if (code === UPDATE_UPLOAD_PROGRESS) {
+    const { index, total } = data
+    percentage.value = Math.floor((index / total) * 100)
+  } else if (code === TRANSCODE_COMPLETE) {
     ElNotification({
-      title: '分辨率',
-      message: '修改成功，重启即可生效',
-      type: 'primary',
+      duration: 0,
+      title: '转码成功',
+      message: '可以开始上传了',
+      type: 'success',
       customClass: 'small-notification'
     })
-  } else {
-    ElMessageBox.confirm('分辨率修改成功，马上重启即可生效，确认吗?', '提醒', {
-      confirmButtonText: '确认',
-      cancelButtonText: '取消',
-      type: 'primary'
-    })
-      .then(() => {
-        window.electron.ipcRenderer.send('relaunch')
-      })
-      .catch(() => {})
+    disableUploadBtn.value = false
   }
-})
-
-window.electron.ipcRenderer.on('update-upload-progress', (_event, data) => {
-  const { index, total } = data
-  percentage.value = Math.floor((index / total) * 100)
-})
-
-window.electron.ipcRenderer.on('transcode-complete', () => {
-  ElNotification({
-    duration: 0,
-    title: '转码成功',
-    message: '可以开始上传了',
-    type: 'success',
-    customClass: 'small-notification'
-  })
-  disableUploadBtn.value = false
 })
 
 const globalConfigStore = useGlobalConfigStore()
@@ -259,7 +267,7 @@ const loadDevices = async () => {
 }
 
 onMounted(async () => {
-  const { width, height } = await window.electron.ipcRenderer.invoke('get-video-config')
+  const { width, height } = await utils.ipcRenderer.invoke(VIDEO_CONFIG)
   const aspectRatio = +(width / height).toFixed(3)
   videoConfig.value = { aspectRatio, width, height }
   await loadDevices()
@@ -390,7 +398,7 @@ const drawOverlay = (timestamp: number) => {
 const saveChunkToDB = async (data, uuid, chunkId) => {
   const arrayBuffer = await data.arrayBuffer()
 
-  await window.electron.ipcRenderer.invoke('save-chunk', {
+  await utils.ipcRenderer.invoke(SAVE_CHUNK, {
     buffer: arrayBuffer,
     uuid,
     chunkId
@@ -458,12 +466,9 @@ const startRecording = async () => {
       // 等待所有 pending 的保存任务完成
       await Promise.all(pendingSaves)
       pendingSaves.length = 0
-      const { success, message, data, error } = await window.electron.ipcRenderer.invoke(
-        'repair-video',
-        {
-          uuid
-        }
-      )
+      const { success, message, data, error } = await utils.ipcRenderer.invoke(REPAIR_VIDEO, {
+        uuid
+      })
       if (loading) loading.close()
       if (success) {
         ElMessage.success(message)
@@ -589,7 +594,7 @@ const upload = async () => {
     VITE_MERGE_CHUNK_URL: mergeChunkUrl,
     VITE_CHECK_FILE_URL: checkFileUrl
   } = import.meta.env
-  const { success } = await window.electron.ipcRenderer.invoke('upload-file', {
+  const { success } = await utils.ipcRenderer.invoke(UPLOAD_FILE, {
     localFilePath: localFilePath.value,
     serverUrl,
     apiPrefix,

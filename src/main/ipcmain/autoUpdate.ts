@@ -1,15 +1,14 @@
-import { ipcMain } from 'electron'
-import { autoUpdate, logger } from '../utils'
+import type { VoidFunction } from './onHandler'
+import type { HandleFunction } from './handleHandler'
 
-ipcMain.on('download-update', () => {
-  autoUpdate.downloadUpdate()
-})
+import { autoUpdate } from '../utils'
+import { DOWNLOAD_UPDATE, INSTALL_UPDATE, CHECK_UPDATE } from '../../constant'
 
-ipcMain.on('install-update', () => {
-  autoUpdate.installUpdate()
-})
+export const autoUpdateHandleHandlerMap = new Map<string, HandleFunction>([
+  [CHECK_UPDATE, autoUpdate.autoUpdateApp]
+])
 
-ipcMain.handle('check-update', () => {
-  logger.logger.info('检查更新')
-  autoUpdate.autoUpdateApp()
-})
+export const autoUpdateOnHandlerMap = new Map<string, VoidFunction>([
+  [DOWNLOAD_UPDATE, autoUpdate.downloadUpdate],
+  [INSTALL_UPDATE, autoUpdate.installUpdate]
+])
