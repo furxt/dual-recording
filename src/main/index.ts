@@ -14,9 +14,6 @@ const {
   common: { generateErrorMsg }
 } = utils
 
-// 启用硬件加速
-app.commandLine.appendSwitch('enable-accelerated-video-decode')
-
 // 主进程全局异常捕获
 process.on('uncaughtException', (error, origin) => {
   const errorMessage = `
@@ -25,7 +22,7 @@ ${generateErrorMsg(error)}
 错误来源: ${origin}
 `
   logger.error(errorMessage)
-  if (is.dev) utils.common.sendError(mainWindow, '程序异常')
+  if (is.dev) utils.common.sendError(mainWindow!, '程序异常')
 })
 
 process.on('unhandledRejection', (reason) => {
@@ -39,7 +36,7 @@ ${reason instanceof Error ? reason.stack : '(非 Error 对象，无堆栈信息)
 原始数据: ${JSON.stringify(reason, null, 2)}
 `
   logger.error(errorMessage)
-  if (is.dev) utils.common.sendError(mainWindow, '程序异常')
+  if (is.dev) utils.common.sendError(mainWindow!, '程序异常')
 })
 
 if (!app.requestSingleInstanceLock()) {
