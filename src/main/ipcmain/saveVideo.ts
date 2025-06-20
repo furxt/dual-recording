@@ -4,7 +4,6 @@ import PQueue from 'p-queue'
 import utils, { FileWriter } from '@main/utils'
 import { IpcMainInvokeEvent } from 'electron'
 import { mainWindow } from '@main/index'
-import type { HandleFunction } from './handler'
 import { SAVE_CHUNK, REPAIR_VIDEO, TRANSCODE_COMPLETE } from '@constants/index'
 
 const { videoDir } = utils.common
@@ -75,7 +74,7 @@ const repairVideo = async (_event: IpcMainInvokeEvent, { uuid }): Promise<Result
           '-c:v',
           'libx264',
           '-preset',
-          'fast',
+          'medium',
           '-crf',
           '23',
           '-c:a',
@@ -84,8 +83,6 @@ const repairVideo = async (_event: IpcMainInvokeEvent, { uuid }): Promise<Result
           '192k',
           '-pix_fmt',
           'yuv420p',
-          '-vf',
-          'scale=1280:720:force_original_aspect_ratio=decrease,pad=1280:720:(ow-iw)/2:(oh-ih)/2',
           mp4VideoPath
         ]
         // 执行 FFmpeg 转码WebM → MP4
@@ -108,7 +105,7 @@ const repairVideo = async (_event: IpcMainInvokeEvent, { uuid }): Promise<Result
   }
 }
 
-export const videoHandleHandlerMap = new Map<string, HandleFunction>([
-  [SAVE_CHUNK, saveChunk],
-  [REPAIR_VIDEO, repairVideo]
-])
+export const videoHandleHandlerArr = [
+  { code: SAVE_CHUNK, handler: saveChunk },
+  { code: REPAIR_VIDEO, handler: repairVideo }
+]

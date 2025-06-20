@@ -488,7 +488,7 @@ const startRecording = async () => {
     mixedStream.getTracks().forEach((track) => track.stop())
   }
 
-  mediaRecorder.start(1000 * 30)
+  mediaRecorder.start(1000 * 10)
   startDrawLoop()
 }
 

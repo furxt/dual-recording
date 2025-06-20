@@ -1,48 +1,44 @@
 import { IpcMainInvokeEvent } from 'electron'
-import { commonHandleHandlerMap, commonOnHandlerMap } from './common'
-import { autoUpdateHandleHandlerMap, autoUpdateOnHandlerMap } from './autoUpdate'
-import { logHandleHandlerMap } from './logger'
-import { videoHandleHandlerMap } from './saveVideo'
-import { uploadFileHandleHandlerMap } from './uploadFile'
+import { commonHandleHandlerArr, commonOnHandlerArr } from './common'
+import { autoUpdateOnHandlerArr, autoUpdateHandleHandlerArr } from './autoUpdate'
+import { logHandleHandlerArr } from './logger'
+import { videoHandleHandlerArr } from './saveVideo'
+import { uploadFileHandleHandlerArr } from './uploadFile'
 import utils from '@main/utils'
+
+// on的处理器Map, 有新的处理器自行追加即可
+const onHandlerArr = [...autoUpdateOnHandlerArr, ...commonOnHandlerArr]
+
+// handle的处理器Map, 有新的处理器自行追加即可
+const handleHandlerArr = [
+  ...autoUpdateHandleHandlerArr,
+  ...commonHandleHandlerArr,
+  ...logHandleHandlerArr,
+  ...videoHandleHandlerArr,
+  ...uploadFileHandleHandlerArr
+]
 
 class Handler {
   private handelHandlerMap = new Map<string, HandleFunction>()
   private onHandlerMap = new Map<string, VoidFunction>()
 
   constructor() {
-    this.initHandleHandler()
-    this.initOnHandler()
+    this.init()
   }
 
-  /**
-   * 初始化handleHandler
-   */
-  initHandleHandler(): void {
-    const handlerMapArr = [
-      commonHandleHandlerMap,
-      autoUpdateHandleHandlerMap,
-      logHandleHandlerMap,
-      videoHandleHandlerMap,
-      uploadFileHandleHandlerMap
-    ]
-    handlerMapArr.forEach((handlerMap) => {
-      handlerMap.forEach((value, key) => {
-        this.handelHandlerMap.set(key, value)
-      })
-    })
+  init(): void {
+    this.initHandler(onHandlerArr, this.onHandlerMap)
+    this.initHandler(handleHandlerArr, this.handelHandlerMap)
   }
 
-  /**
-   * 初始化onHandler
-   */
-  initOnHandler(): void {
-    const handlerMapArr = [autoUpdateOnHandlerMap, commonOnHandlerMap]
-    handlerMapArr.forEach((handlerMap) => {
-      handlerMap.forEach((value, key) => {
-        this.onHandlerMap.set(key, value)
-      })
+  initHandler(
+    handlerArr: { code: string; handler: HandleFunction | VoidFunction }[],
+    handlerMap: Map<string, HandleFunction | VoidFunction>
+  ): void {
+    handlerArr.forEach((e) => {
+      handlerMap.set(e.code, e.handler)
     })
+    handlerArr.length = 0
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -84,8 +80,8 @@ class Handler {
 const handler = new Handler()
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type HandleFunction = (...args: any[]) => Promise<any> | any
+type HandleFunction = (...args: any[]) => Promise<any> | any
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type VoidFunction = (...args: any[]) => void
+type VoidFunction = (...args: any[]) => void
 
 export default handler

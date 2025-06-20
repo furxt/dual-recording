@@ -3,7 +3,6 @@ import path from 'path'
 import axios from 'axios'
 import utils from '@main/utils'
 import { IpcMainInvokeEvent } from 'electron'
-import type { HandleFunction } from './handler'
 import { UPLOAD_FILE, UPDATE_UPLOAD_PROGRESS } from '@constants/index'
 import { mainWindow } from '@main/index'
 
@@ -101,6 +100,9 @@ const uploadFile = async (
   return result
 }
 
-export const uploadFileHandleHandlerMap = new Map<string, HandleFunction>([
-  [UPLOAD_FILE, uploadFile]
-])
+export const uploadFileHandleHandlerArr = [
+  {
+    code: UPLOAD_FILE,
+    handler: uploadFile
+  }
+]

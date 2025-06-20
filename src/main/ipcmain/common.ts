@@ -9,7 +9,6 @@ import {
   APP_VERSION,
   VIDEO_CONFIG
 } from '@constants/index'
-import type { VoidFunction, HandleFunction } from './handler'
 
 const {
   logger: { logger },
@@ -59,14 +58,29 @@ const getVideoConfig = (): {
 }
 
 // ipcMain.handle()
-export const commonHandleHandlerMap = new Map<string, HandleFunction>([
-  [APP_VERSION, getAppVersion],
-  [VIDEO_CONFIG, getVideoConfig]
-])
+export const commonHandleHandlerArr = [
+  {
+    code: APP_VERSION,
+    handler: getAppVersion
+  },
+  {
+    code: VIDEO_CONFIG,
+    handler: getVideoConfig
+  }
+]
 
 // ipcMain.on()
-export const commonOnHandlerMap = new Map<string, VoidFunction>([
-  [WINDOW_CLOSE, windowClose],
-  [WINDOW_MINIMIZE, windowMinimize],
-  [RELAUNCH, relaunch]
-])
+export const commonOnHandlerArr = [
+  {
+    code: WINDOW_CLOSE,
+    handler: windowClose
+  },
+  {
+    code: WINDOW_MINIMIZE,
+    handler: windowMinimize
+  },
+  {
+    code: RELAUNCH,
+    handler: relaunch
+  }
+]

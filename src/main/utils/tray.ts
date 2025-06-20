@@ -26,9 +26,12 @@ export const createTray = (
           label: '480',
           click: () => {
             const windowSize = windowSizeArray.find((e) => e.id === '480')
-            const windowSizeArr = mainWindow.getContentSize()
             localConf.set(WINDOW_SIZE, windowSize)
-            if (windowSize && windowSizeArr[0] - windowSize.windowWidth < 5) {
+            if (
+              windowSize &&
+              0 <= mainWindow.getContentSize()[0] - windowSize.windowWidth &&
+              mainWindow.getContentSize()[0] - windowSize.windowWidth <= 5
+            ) {
               send.sendApp(mainWindow, PRIMARY_MESSAGE, '当前分辨率已设置为480p')
               return
             }
@@ -40,9 +43,12 @@ export const createTray = (
           label: '720',
           click: () => {
             const windowSize = windowSizeArray.find((e) => e.id === '720')
-            const windowSizeArr = mainWindow.getContentSize()
             localConf.set(WINDOW_SIZE, windowSize)
-            if (windowSize && windowSizeArr[0] - windowSize.windowWidth < 5) {
+            if (
+              windowSize &&
+              0 <= mainWindow.getContentSize()[0] - windowSize.windowWidth &&
+              mainWindow.getContentSize()[0] - windowSize.windowWidth <= 5
+            ) {
               send.sendApp(mainWindow, PRIMARY_MESSAGE, '当前分辨率已设置为720p')
               return
             }

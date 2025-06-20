@@ -1,6 +1,5 @@
 import { IpcMainInvokeEvent } from 'electron'
 import utils from '@main/utils'
-import type { HandleFunction } from './handler'
 import { RECORD_LOG } from '@constants/index'
 
 const recordLog = (
@@ -28,4 +27,9 @@ const recordLog = (
   }
 }
 
-export const logHandleHandlerMap = new Map<string, HandleFunction>([[RECORD_LOG, recordLog]])
+export const logHandleHandlerArr = [
+  {
+    code: RECORD_LOG,
+    handler: recordLog
+  }
+]
