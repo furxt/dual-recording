@@ -71,7 +71,6 @@ export let openParam: object
 app.whenReady().then(async () => {
   const protocols = 'dualrecording://'
   const argArr = process.argv
-
   for (const str of argArr) {
     if (str.indexOf(protocols) > -1) {
       const urlParam = str.split(protocols)[1]

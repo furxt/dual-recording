@@ -14,7 +14,7 @@ class FileWriter {
 
   open(): void {
     this.writeStream = fs.createWriteStream(this.outputFilePath, { flags: 'a' })
-    logger.info(`${this.outputFilePath} 输入流已经打开`)
+    logger.debug(`${this.outputFilePath} 输入流已经打开`)
     this.writeStream.on('error', (err) => {
       const errMsg = generateErrorMsg(err)
       logger.error(`写入流发生错误: ${errMsg}`)
@@ -28,13 +28,13 @@ class FileWriter {
         return
       }
 
-      logger.info(`${this.outputFilePath} 开始写入第 ${index + 1} 个分片`)
+      logger.debug(`${this.outputFilePath} 开始写入第 ${index + 1} 个分片`)
       const result = this.writeStream.write(buffer, (err) => {
         if (err) {
           logger.error(`${this.outputFilePath} 写入第 ${index + 1} 个分片失败`)
           reject(err)
         } else {
-          logger.success(`${this.outputFilePath} 成功写入第 ${index + 1} 个分片`)
+          logger.debug(`${this.outputFilePath} 成功写入第 ${index + 1} 个分片`)
           resolve()
         }
       })
@@ -56,7 +56,7 @@ class FileWriter {
       }
       this.isClosed = true
       this.writeStream.end(() => {
-        logger.success('所有分片写入完成，流已关闭')
+        logger.debug('所有分片写入完成，流已关闭')
         resolve()
       })
     })
