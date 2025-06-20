@@ -1,10 +1,13 @@
 import { BrowserWindow, shell, NativeImage } from 'electron'
 import { is, platform } from '@electron-toolkit/utils'
-import { CLOSE_WINDOW } from '@constant/index'
+import { CLOSE_WINDOW } from '@constants/index'
+import { WINDOW_SIZE, localConf } from './globalConf'
+import { checkFfmpegHomePath } from './ffmpeg'
+import { sendApp } from './send'
+import { windowSizeArray } from './common'
 import path from 'path'
-import utils from './index'
 
-export const createMainWindow = async (icon?: NativeImage | string): Promise<BrowserWindow> => {
+export const createMainWindow = async (icon: NativeImage | string): Promise<BrowserWindow> => {
   // 如果之前存在 mainWindow，则先关闭它
 
   let mainWindow: BrowserWindow | null = new BrowserWindow({
@@ -23,15 +26,14 @@ export const createMainWindow = async (icon?: NativeImage | string): Promise<Bro
     }
   })
   // 设置默认窗口大小
-  const { WINDOW_SIZE, localConf } = utils.globalConf
   if (!localConf.get(WINDOW_SIZE)) {
-    localConf.set(WINDOW_SIZE, utils.common.windowSizeArray[0])
+    localConf.set(WINDOW_SIZE, windowSizeArray[0])
   }
   const { windowHeight, windowWidth } = localConf.get(WINDOW_SIZE) as WindowSizeInfo
   mainWindow.setContentSize(windowWidth, windowHeight)
   mainWindow.center()
   // 检查 ffmpegHomePath
-  await utils.ffmpeg.checkFfmpegHomePath()
+  await checkFfmpegHomePath()
 
   mainWindow.on('ready-to-show', () => {
     mainWindow?.show()
@@ -56,7 +58,9 @@ export const createMainWindow = async (icon?: NativeImage | string): Promise<Bro
   // 监听窗口关闭事件
   mainWindow.on('close', (event) => {
     event.preventDefault()
-    utils.send.sendApp(mainWindow!, CLOSE_WINDOW)
+    mainWindow?.show()
+    mainWindow?.focus()
+    sendApp(mainWindow!, CLOSE_WINDOW)
   })
 
   // 窗口关闭后释放引用

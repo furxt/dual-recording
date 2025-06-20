@@ -1,8 +1,8 @@
 import fs from 'fs'
-import utils from './index'
+import { logger } from './logger'
+import { generateErrorMsg } from './common'
 
 class FileWriter {
-  private logger = utils.logger.logger
   private writeStream: fs.WriteStream | null = null
   private outputFilePath: string
   private isClosed = false
@@ -14,10 +14,10 @@ class FileWriter {
 
   open(): void {
     this.writeStream = fs.createWriteStream(this.outputFilePath, { flags: 'a' })
-    this.logger.info(`${this.outputFilePath} 输入流已经打开`)
+    logger.info(`${this.outputFilePath} 输入流已经打开`)
     this.writeStream.on('error', (err) => {
-      const errMsg = utils.common.generateErrorMsg(err)
-      this.logger.error(`写入流发生错误: ${errMsg}`)
+      const errMsg = generateErrorMsg(err)
+      logger.error(`写入流发生错误: ${errMsg}`)
     })
   }
 
@@ -28,13 +28,13 @@ class FileWriter {
         return
       }
 
-      this.logger.info(`${this.outputFilePath} 开始写入第 ${index + 1} 个分片`)
+      logger.info(`${this.outputFilePath} 开始写入第 ${index + 1} 个分片`)
       const result = this.writeStream.write(buffer, (err) => {
         if (err) {
-          this.logger.error(`${this.outputFilePath} 写入第 ${index + 1} 个分片失败`)
+          logger.error(`${this.outputFilePath} 写入第 ${index + 1} 个分片失败`)
           reject(err)
         } else {
-          this.logger.success(`${this.outputFilePath} 成功写入第 ${index + 1} 个分片`)
+          logger.success(`${this.outputFilePath} 成功写入第 ${index + 1} 个分片`)
           resolve()
         }
       })
@@ -56,7 +56,7 @@ class FileWriter {
       }
       this.isClosed = true
       this.writeStream.end(() => {
-        this.logger.success('所有分片写入完成，流已关闭')
+        logger.success('所有分片写入完成，流已关闭')
         resolve()
       })
     })

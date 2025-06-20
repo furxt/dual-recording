@@ -2,9 +2,14 @@ import { app } from 'electron'
 import { is } from '@electron-toolkit/utils'
 import { mainWindow } from '@main/index'
 import utils from '@main/utils'
-import { WINDOW_CLOSE, WINDOW_MINIMIZE, RELAUNCH, APP_VERSION, VIDEO_CONFIG } from '@constant/index'
-import type { VoidFunction } from './onHandler'
-import type { HandleFunction } from './handleHandler'
+import {
+  WINDOW_CLOSE,
+  WINDOW_MINIMIZE,
+  RELAUNCH,
+  APP_VERSION,
+  VIDEO_CONFIG
+} from '@constants/index'
+import type { VoidFunction, HandleFunction } from './handler'
 
 const {
   logger: { logger },

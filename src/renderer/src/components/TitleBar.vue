@@ -19,19 +19,39 @@
 <script setup lang="ts">
 import { Close, Minus } from '@icon-park/vue-next'
 import utils from '@renderer/utils'
-import { WINDOW_CLOSE, WINDOW_MINIMIZE, APP_VERSION } from '@constant/index'
+import { WINDOW_CLOSE, WINDOW_MINIMIZE, APP_VERSION } from '@constants/index'
+
+const props = defineProps({
+  showCloseWindowMsgBox: {
+    type: Boolean,
+    default: false
+  }
+})
+
+const emit = defineEmits(['update:showCloseWindowMsgBox'])
+
+console.log(props)
+
 const minimizeWindow = () => {
   utils.ipcRenderer.send(WINDOW_MINIMIZE)
 }
 
 const closeWindow = () => {
-  ElMessageBox.confirm('确认退出吗?', '警告', {
-    confirmButtonText: '确认',
-    cancelButtonText: '取消',
-    type: 'warning'
-  }).then(() => {
-    utils.ipcRenderer.send(WINDOW_CLOSE)
-  })
+  if (!props.showCloseWindowMsgBox) {
+    emit('update:showCloseWindowMsgBox', true)
+    ElMessageBox.confirm('确认退出吗?', '警告', {
+      confirmButtonText: '确认',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+      .then(() => {
+        utils.ipcRenderer.send(WINDOW_CLOSE)
+        emit('update:showCloseWindowMsgBox', false)
+      })
+      .catch(() => {
+        emit('update:showCloseWindowMsgBox', false)
+      })
+  }
 }
 
 const version = ref('')

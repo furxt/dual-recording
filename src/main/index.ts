@@ -1,7 +1,7 @@
 import { app, BrowserWindow, dialog } from 'electron'
 import { electronApp, optimizer, is, platform } from '@electron-toolkit/utils'
-import { DOWNLOAD_UPDATE } from '@constant/index'
 import icon from '../../resources/icon.png?asset'
+import windowsTray from '../../resources/windowsTray.png?asset'
 import utils from './utils'
 import './ipcmain'
 
@@ -14,8 +14,6 @@ const {
   logger: { logger },
   common: { generateErrorMsg }
 } = utils
-
-logger.success(DOWNLOAD_UPDATE)
 
 // 主进程全局异常捕获
 process.on('uncaughtException', (error, origin) => {
@@ -70,7 +68,6 @@ if (!app.requestSingleInstanceLock()) {
 export let startByApp = true
 // 通过浏览器打开应用时传递进来的参数，理论上来说这里应该支持多个类型，每个业务类型都应该有对应的处理逻辑
 export let openParam: object
-
 app.whenReady().then(async () => {
   const protocols = 'dualrecording://'
   const argArr = process.argv
@@ -99,7 +96,7 @@ app.whenReady().then(async () => {
   })
 
   mainWindow = await utils.window.createMainWindow(icon)
-  utils.tray.createTray(mainWindow)
+  utils.tray.createTray(windowsTray, mainWindow)
 
   app.on('activate', () => {
     // On macOS it's common to re-create a window in the app when the
@@ -120,3 +117,9 @@ app.on('window-all-closed', () => {
 export default {
   mainWindow
 }
+
+if (utils.common.APP_ENV !== 'production')
+  setInterval(() => {
+    const mem = process.memoryUsage()
+    logger.warn(`主进程内存使用: ${(mem.rss / 1024 / 1024).toFixed(2)} MB`)
+  }, 1000 * 10)

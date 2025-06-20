@@ -1,8 +1,6 @@
-import type { VoidFunction } from './onHandler'
-import type { HandleFunction } from './handleHandler'
-
+import type { VoidFunction, HandleFunction } from './handler'
 import { autoUpdate } from '@main/utils'
-import { DOWNLOAD_UPDATE, INSTALL_UPDATE, CHECK_UPDATE } from '@constant/index'
+import { DOWNLOAD_UPDATE, INSTALL_UPDATE, CHECK_UPDATE } from '@constants/index'
 
 export const autoUpdateHandleHandlerMap = new Map<string, HandleFunction>([
   [CHECK_UPDATE, autoUpdate.autoUpdateApp]

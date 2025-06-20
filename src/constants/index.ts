@@ -22,6 +22,8 @@ const UPDATE_UPLOAD_PROGRESS = 'update-upload-progress'
 const TRANSCODE_COMPLETE = 'transcode-complete'
 const APP_PAGE = 'app-page'
 const RECORD_PAGE = 'record-page'
+const UNREGISTER_HANDLER = 'unregister-handler'
+const REGISTER_HANDLER = 'register-handler'
 
 export {
   DOWNLOAD_UPDATE,
@@ -47,5 +49,7 @@ export {
   UPDATE_UPLOAD_PROGRESS,
   TRANSCODE_COMPLETE,
   APP_PAGE,
-  RECORD_PAGE
+  RECORD_PAGE,
+  UNREGISTER_HANDLER,
+  REGISTER_HANDLER
 }

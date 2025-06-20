@@ -167,7 +167,7 @@ import {
   CHANGE_RESOLUTION,
   UPDATE_UPLOAD_PROGRESS,
   TRANSCODE_COMPLETE
-} from '@constant/index'
+} from '@constants/index'
 
 window.electron.ipcRenderer.on(RECORD_PAGE, (_event, code, data) => {
   if (code === CHANGE_RESOLUTION) {

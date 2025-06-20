@@ -4,8 +4,8 @@ import PQueue from 'p-queue'
 import utils, { FileWriter } from '@main/utils'
 import { IpcMainInvokeEvent } from 'electron'
 import { mainWindow } from '@main/index'
-import type { HandleFunction } from './handleHandler'
-import { SAVE_CHUNK, REPAIR_VIDEO, TRANSCODE_COMPLETE } from '@constant/index'
+import type { HandleFunction } from './handler'
+import { SAVE_CHUNK, REPAIR_VIDEO, TRANSCODE_COMPLETE } from '@constants/index'
 
 const { videoDir } = utils.common
 const { logger } = utils.logger

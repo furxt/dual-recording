@@ -3,8 +3,8 @@ import path from 'path'
 import axios from 'axios'
 import utils from '@main/utils'
 import { IpcMainInvokeEvent } from 'electron'
-import type { HandleFunction } from './handleHandler'
-import { UPLOAD_FILE, UPDATE_UPLOAD_PROGRESS } from '@constant/index'
+import type { HandleFunction } from './handler'
+import { UPLOAD_FILE, UPDATE_UPLOAD_PROGRESS } from '@constants/index'
 import { mainWindow } from '@main/index'
 
 const {

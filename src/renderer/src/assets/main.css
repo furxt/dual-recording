@@ -1,9 +1,10 @@
 @import './base.css';
 @import './elementplus.scss';
-
 @import 'tailwindcss';
 
+html,
 body {
   margin: 0;
   padding: 0;
+  overflow: hidden; /* 防止滚动条出现 */
 }

@@ -1,7 +1,7 @@
 import { IpcMainInvokeEvent } from 'electron'
 import utils from '@main/utils'
-import type { HandleFunction } from './handleHandler'
-import { RECORD_LOG } from '@constant/index'
+import type { HandleFunction } from './handler'
+import { RECORD_LOG } from '@constants/index'
 
 const recordLog = (
   _event: IpcMainInvokeEvent,

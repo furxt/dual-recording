@@ -1,7 +1,7 @@
 <template>
   <Suspense>
     <div class="bg-gray-100 h-[100vh] app">
-      <TitleBar />
+      <TitleBar v-model:showCloseWindowMsgBox="showCloseWindowMsgBox" />
       <Record />
       <div
         v-if="isDownloadUpdateApp"
@@ -33,7 +33,9 @@ import {
   CLOSE_WINDOW,
   UPDATE_DOWNLOADED,
   CATCH_ERROR
-} from '@constant/index'
+} from '@constants/index'
+
+const showCloseWindowMsgBox = ref(false)
 
 window.electron.ipcRenderer.on(APP_PAGE, (_event, code, data) => {
   if (code === PRIMARY_MESSAGE) {
@@ -60,14 +62,23 @@ window.electron.ipcRenderer.on(APP_PAGE, (_event, code, data) => {
     percentage.value = data
   } else if (code === CLOSE_WINDOW) {
     console.log('关闭窗口')
-    ElMessageBox.confirm('确认退出吗?', '警告', {
-      closeOnClickModal: false,
-      confirmButtonText: '确认',
-      cancelButtonText: '取消',
-      type: 'warning'
-    }).then(() => {
-      utils.ipcRenderer.send(WINDOW_CLOSE)
-    })
+
+    if (!showCloseWindowMsgBox.value) {
+      showCloseWindowMsgBox.value = true
+      ElMessageBox.confirm('确认退出吗?', '警告', {
+        closeOnClickModal: false,
+        confirmButtonText: '确认',
+        cancelButtonText: '取消',
+        type: 'warning'
+      })
+        .then(() => {
+          utils.ipcRenderer.send(WINDOW_CLOSE)
+          showCloseWindowMsgBox.value = false
+        })
+        .catch(() => {
+          showCloseWindowMsgBox.value = false
+        })
+    }
   } else if (code === UPDATE_DOWNLOADED) {
     console.log('更新下载完成')
     setTimeout(() => {

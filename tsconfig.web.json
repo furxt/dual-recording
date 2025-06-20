@@ -2,7 +2,7 @@
   "extends": "@electron-toolkit/tsconfig/tsconfig.web.json",
   "include": [
     "src/renderer/src/env.d.ts",
-    "src/constant/**/*",
+    "src/constants/**/*",
     "src/renderer/src/**/*",
     "src/renderer/src/**/*.vue",
     "src/preload/*.d.ts",
@@ -16,8 +16,8 @@
       "@renderer/*": [
         "src/renderer/src/*"
       ],
-      "@constant/*": [
-        "src/constant/*"
+      "@constants/*": [
+        "src/constants/*"
       ]
     }
   }

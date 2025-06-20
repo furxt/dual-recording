@@ -5,7 +5,7 @@
     "src/main/**/*",
     "src/types/**/*",
     "src/preload/**/*",
-    "src/constant/**/*"
+    "src/constants/**/*"
   ],
   "compilerOptions": {
     "module": "nodenext",
@@ -20,8 +20,8 @@
       "@main/*": [
         "src/main/*"
       ],
-      "@constant/*": [
-        "src/constant/*"
+      "@constants/*": [
+        "src/constants/*"
       ]
     }
   }
