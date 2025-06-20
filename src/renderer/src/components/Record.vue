@@ -346,8 +346,6 @@ let beginTime = ''
 const FRAME_RATE = 30 // 目标帧率，例如 30fps
 const FRAME_INTERVAL = 1000 / FRAME_RATE // 每帧间隔时间（ms）
 let lastDisplayedTime = dayjs().format('YYYY-MM-DD HH:mm:ss') // 初始化为当前时间
-// 新增一个数组用于存储时间戳映射
-const frameTimestamps = []
 
 const drawOverlay = (timestamp: number) => {
   const video = videoRef.value
@@ -636,13 +634,13 @@ const openSettingDialog = async () => {
   await loadDevices()
 }
 
-const changeVideoInput = (val) => {
+const changeVideoInput = (val: string) => {
   const videoinputDevice = videoinputDevices.value.find((e) => e.label === val)
   globalConfigStore.config.videoinputDeviceId = videoinputDevice?.deviceId as string
   reloadDevice()
 }
 
-const changeAudioInput = (val) => {
+const changeAudioInput = (val: string) => {
   const audioinputDevice = audioinputDevices.value.find((e) => e.label === val)
   globalConfigStore.config.audioinputDeviceId = audioinputDevice?.deviceId as string
   reloadDevice()

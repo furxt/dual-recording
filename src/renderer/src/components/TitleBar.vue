@@ -30,8 +30,6 @@ const props = defineProps({
 
 const emit = defineEmits(['update:showCloseWindowMsgBox'])
 
-console.log(props)
-
 const minimizeWindow = () => {
   utils.ipcRenderer.send(WINDOW_MINIMIZE)
 }
