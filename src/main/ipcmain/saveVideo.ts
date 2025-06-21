@@ -86,11 +86,11 @@ const repairVideo = async (_event: IpcMainInvokeEvent, { uuid }): Promise<Result
           mp4VideoPath
         ]
         // 执行 FFmpeg 转码WebM → MP4
-        logger.info(`开始转码 ${webmVideoPath} 文件...`)
+        logger.debug(`开始转码 ${webmVideoPath} 文件...`)
         runFFmpegTranscode(ffmpegPath, ffmpegArgs, (progress: number) => {
           sendUtil.sendRecord(mainWindow!, TRANSCODE_PROGRESS, progress)
         }).then(() => {
-          logger.success(`ffmpeg ${webmVideoPath} 文件转码成功, 已生成 ${mp4VideoPath} 文件`)
+          logger.debug(`ffmpeg ${webmVideoPath} 文件转码成功, 已生成 ${mp4VideoPath} 文件`)
           sendUtil.sendRecord(mainWindow!, TRANSCODE_COMPLETE)
         })
         resolve()

@@ -19,6 +19,15 @@ export default tseslint.config(
         extraFileExtensions: ['.vue'],
         parser: tseslint.parser
       }
+    },
+    rules: {
+      'vue/no-unused-components': [
+        'error',
+        {
+          ignore: ['el-*'],
+          ignoreWhenBindingPresent: true
+        }
+      ]
     }
   },
   {

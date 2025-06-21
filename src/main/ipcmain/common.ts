@@ -1,7 +1,8 @@
 import { app } from 'electron'
 import { is } from '@electron-toolkit/utils'
 import { mainWindow } from '@main/index'
-import { localConf, WINDOW_SIZE } from '@main/utils/globalConf'
+import { localConf } from '@main/utils/globalConf'
+import { CONF_WINDOW_SIZE } from '@constants/index'
 import { logger } from '@main/utils/logger'
 import { join } from 'path'
 import {
@@ -9,8 +10,7 @@ import {
   WINDOW_MINIMIZE,
   RELAUNCH,
   APP_VERSION,
-  APP_ICON_PATH,
-  VIDEO_CONFIG
+  APP_ICON_PATH
 } from '@constants/index'
 
 const windowClose = (): void => {
@@ -31,7 +31,7 @@ const relaunch = (): void => {
     app.quit()
   } else {
     mainWindow?.hide()
-    const { windowWidth, windowHeight } = localConf.get(WINDOW_SIZE) as WindowSizeInfo
+    const { windowWidth, windowHeight } = localConf.get(CONF_WINDOW_SIZE) as WindowSizeInfo
     mainWindow?.reload()
     mainWindow?.setContentSize(windowWidth, windowHeight)
     setTimeout(() => {
@@ -51,15 +51,6 @@ const getAppIconPath = (): string => {
   return join(app.getAppPath(), 'resources', 'icon.png')
 }
 
-// 获取视频配置
-const getVideoConfig = (): {
-  width: number
-  height: number
-} => {
-  const { resolution } = localConf.get(WINDOW_SIZE) as WindowSizeInfo
-  return resolution
-}
-
 // ipcMain.handle()
 export const commonHandleHandlerArr = [
   {
@@ -69,10 +60,6 @@ export const commonHandleHandlerArr = [
   {
     code: APP_ICON_PATH,
     handler: getAppIconPath
-  },
-  {
-    code: VIDEO_CONFIG,
-    handler: getVideoConfig
   }
 ]
 

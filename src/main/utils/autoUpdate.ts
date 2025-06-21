@@ -1,8 +1,10 @@
 import { autoUpdater } from 'electron-updater'
 import { sendApp } from './send'
 import { logger } from './logger'
+import { generateErrorMsg, sendError } from './common'
 import { mainWindow } from '@main/index'
 import { UPDATE_AVAILABLE, DOWNLOAD_PROGRESS, UPDATE_DOWNLOADED } from '@constants/index'
+import { IpcMainInvokeEvent } from 'electron'
 /**
  * 用户确定是否下载更新
  */
@@ -20,20 +22,17 @@ export const installUpdate = (): void => {
 /**
  * 自动更新的逻辑
  */
-export const autoUpdateApp = (): void => {
+export const autoUpdateApp = (_event?: IpcMainInvokeEvent, needWarn?: boolean): void => {
+  console.log('开始检查更新', needWarn)
   // 等待 3 秒再检查更新，确保窗口准备完成，用户进入系统
   // 每次启动自动更新检查更新版本
-  autoUpdater.checkForUpdates()
   autoUpdater.logger = logger
   autoUpdater.disableWebInstaller = false
   // 这个写成 false，写成 true 时，可能会报没权限更新
   autoUpdater.autoDownload = false
-  autoUpdater.on('error', (error) => {
-    logger.error([
-      `检查更新失败:
-      ${error}`
-    ])
-  })
+  // autoUpdater.on('error', (error, message) => {
+  //   // 我先面捕获了异常错误，这里就不先处理
+  // })
   // 当有可用更新的时候触发。 更新将自动下载。
   autoUpdater.on('update-available', (info) => {
     // 检查到可用更新，交由用户提示是否下载
@@ -54,6 +53,16 @@ export const autoUpdateApp = (): void => {
     logger.info('下载完毕!提示安装更新')
     // 下载完成之后，弹出对话框提示用户是否立即安装更新
     sendApp(mainWindow!, UPDATE_DOWNLOADED)
+  })
+  autoUpdater.checkForUpdates().catch((error) => {
+    const errorMsg = generateErrorMsg(error)
+    logger.error(
+      `检查更新失败:
+      ${errorMsg}`
+    )
+    if (needWarn) {
+      sendError(mainWindow!, '检查更新失败!')
+    }
   })
 }
 

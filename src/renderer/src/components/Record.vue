@@ -173,7 +173,6 @@ import { progressConstant } from '@renderer/constants'
 import type { LoadingInstance } from 'element-plus/es/components/loading/src/loading'
 import {
   RELAUNCH,
-  VIDEO_CONFIG,
   SAVE_CHUNK,
   REPAIR_VIDEO,
   UPLOAD_FILE,
@@ -181,9 +180,13 @@ import {
   CHANGE_RESOLUTION,
   UPDATE_UPLOAD_PROGRESS,
   TRANSCODE_COMPLETE,
-  TRANSCODE_PROGRESS
+  TRANSCODE_PROGRESS,
+  CONF_WINDOW_SIZE
 } from '@constants/index'
+import { Conf } from 'electron-conf/renderer'
 import utils from '@renderer/utils'
+
+const conf = new Conf()
 
 const showTransCodeProgress = ref(false)
 const transCodeProgress = ref(0)
@@ -289,7 +292,11 @@ const loadDevices = async () => {
 }
 
 onMounted(async () => {
-  const { width, height } = await utils.ipcRenderer.invoke(VIDEO_CONFIG)
+  const windowSizeInfo = (await conf.get(CONF_WINDOW_SIZE)) as WindowSizeInfo
+  console.log('windowSizeInfo', windowSizeInfo)
+  const {
+    resolution: { width, height }
+  } = windowSizeInfo
   const aspectRatio = +(width / height).toFixed(3)
   videoConfig.value = { aspectRatio, width, height }
   await loadDevices()

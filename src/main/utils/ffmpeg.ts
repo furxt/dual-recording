@@ -102,7 +102,7 @@ export const runFFmpegTranscode = (
       const durationMatch = stdOutput.match(/Duration:\s*(\d{2}:\d{2}:\d{2}\.\d{2})/)
       if (durationMatch) {
         totalDuration = parseTimeToSeconds(durationMatch[1])
-        logger.info(`总时长: ${totalDuration}s`)
+        logger.debug(`总时长: ${totalDuration}s`)
       }
       // 提取当前 time
       const timeMatch = stdOutput.match(/time=(\d{2}:\d{2}:\d{2}\.\d{2})/)

@@ -1,7 +1,8 @@
 import { BrowserWindow, shell, NativeImage } from 'electron'
 import { is, platform } from '@electron-toolkit/utils'
 import { CLOSE_WINDOW } from '@constants/index'
-import { WINDOW_SIZE, localConf } from './globalConf'
+import { localConf } from './globalConf'
+import { CONF_WINDOW_SIZE } from '@constants/index'
 import { checkFfmpegHomePath } from './ffmpeg'
 import { sendApp } from './send'
 import { windowSizeArray } from './common'
@@ -27,10 +28,10 @@ export const createMainWindow = async (icon: NativeImage | string): Promise<Brow
     }
   })
   // 设置默认窗口大小
-  if (!localConf.get(WINDOW_SIZE)) {
-    localConf.set(WINDOW_SIZE, windowSizeArray[0])
+  if (!localConf.get(CONF_WINDOW_SIZE)) {
+    localConf.set(CONF_WINDOW_SIZE, windowSizeArray[0])
   }
-  const { windowHeight, windowWidth } = localConf.get(WINDOW_SIZE) as WindowSizeInfo
+  const { windowHeight, windowWidth } = localConf.get(CONF_WINDOW_SIZE) as WindowSizeInfo
   mainWindow.setContentSize(windowWidth, windowHeight)
   mainWindow.center()
   // 检查 ffmpegHomePath

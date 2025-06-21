@@ -1,9 +1,10 @@
 import { app, Tray, Menu, NativeImage } from 'electron'
-// import { common, globalConf, ffmpeg, send } from './index'
 import { windowSizeArray } from './common'
-import { WINDOW_SIZE, localConf } from './globalConf'
+import { localConf } from './globalConf'
+import { CONF_WINDOW_SIZE } from '@constants/index'
 import { setFfmpegHomePath } from './ffmpeg'
 import { sendApp, sendRecord } from './send'
+import { autoUpdateApp } from './autoUpdate'
 import { showWindow } from './window'
 import { PRIMARY_MESSAGE, CHANGE_RESOLUTION } from '@constants/index'
 export const createTray = (
@@ -28,7 +29,7 @@ export const createTray = (
           label: '480',
           click: () => {
             const windowSize = windowSizeArray.find((e) => e.id === '480')
-            localConf.set(WINDOW_SIZE, windowSize)
+            localConf.set(CONF_WINDOW_SIZE, windowSize)
             showWindow(mainWindow)
             if (
               windowSize &&
@@ -46,7 +47,7 @@ export const createTray = (
           label: '720',
           click: () => {
             const windowSize = windowSizeArray.find((e) => e.id === '720')
-            localConf.set(WINDOW_SIZE, windowSize)
+            localConf.set(CONF_WINDOW_SIZE, windowSize)
             showWindow(mainWindow)
             if (
               windowSize &&
@@ -62,6 +63,12 @@ export const createTray = (
       ]
     },
     { type: 'separator' },
+    {
+      label: '检查更新',
+      click: () => {
+        autoUpdateApp(undefined, true)
+      }
+    },
     {
       label: '退出',
       click: () => {
