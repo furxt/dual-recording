@@ -4,7 +4,7 @@ import { autoUpdateOnHandlerArr, autoUpdateHandleHandlerArr } from './autoUpdate
 import { logHandleHandlerArr } from './logger'
 import { videoHandleHandlerArr } from './saveVideo'
 import { uploadFileHandleHandlerArr } from './uploadFile'
-import utils from '@main/utils'
+import { logger } from '@main/utils/logger'
 
 // on的处理器Map, 有新的处理器自行追加即可
 const onHandlerArr = [...autoUpdateOnHandlerArr, ...commonOnHandlerArr]
@@ -45,14 +45,14 @@ class Handler {
   handle(event: IpcMainInvokeEvent, code: string, ...args: any[]): Promise<any> | any {
     const fun = this.handelHandlerMap.get(code)
     if (fun) return fun(event, ...args)
-    else utils.logger.logger.error(`${code} 处理器未注入`)
+    else logger.error(`${code} 处理器未注入`)
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   on(event: IpcMainInvokeEvent, code: string, ...args: any[]): void {
     const fun = this.onHandlerMap.get(code)
     if (fun) fun(event, ...args)
-    else utils.logger.logger.error(`${code} 处理器未注入`)
+    else logger.error(`${code} 处理器未注入`)
   }
 
   /**
@@ -77,11 +77,9 @@ class Handler {
   }
 }
 
-const handler = new Handler()
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type HandleFunction = (...args: any[]) => Promise<any> | any
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type VoidFunction = (...args: any[]) => void
 
-export default handler
+export default new Handler()

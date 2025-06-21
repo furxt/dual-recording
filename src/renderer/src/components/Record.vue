@@ -31,7 +31,21 @@
       </el-form-item>
     </el-form>
   </el-dialog>
+
   <div class="flex flex-col items-center">
+    <div class="flex items-center justify-center">
+      <el-progress
+        v-show="showTransCodeProgress"
+        :percentage="transCodeProgress"
+        :stroke-width="3"
+        :color="progressConstant.colors"
+        :text-inside="true"
+        striped
+        striped-flow
+        :duration="10"
+        :style="{ width: `${videoConfig.width}px` }"
+      />
+    </div>
     <!-- 视频区域 -->
     <div
       class="video-container relative"
@@ -69,7 +83,7 @@
           v-if="showUploadProgress"
           type="dashboard"
           :percentage="percentage"
-          :color="colors"
+          :color="progressConstant.colors"
         />
       </div>
     </div>
@@ -155,8 +169,8 @@ import { v4 as uuidv4 } from 'uuid'
 import { dayjs } from 'element-plus'
 import { GoAhead, Logout, PauseOne, ReplayMusic, Setting, Upload, Video } from '@icon-park/vue-next'
 import { useGlobalConfigStore } from '@renderer/stores'
+import { progressConstant } from '@renderer/constants'
 import type { LoadingInstance } from 'element-plus/es/components/loading/src/loading'
-import utils from '@renderer/utils'
 import {
   RELAUNCH,
   VIDEO_CONFIG,
@@ -166,8 +180,13 @@ import {
   RECORD_PAGE,
   CHANGE_RESOLUTION,
   UPDATE_UPLOAD_PROGRESS,
-  TRANSCODE_COMPLETE
+  TRANSCODE_COMPLETE,
+  TRANSCODE_PROGRESS
 } from '@constants/index'
+import utils from '@renderer/utils'
+
+const showTransCodeProgress = ref(false)
+const transCodeProgress = ref(0)
 
 window.electron.ipcRenderer.on(RECORD_PAGE, (_event, code, data) => {
   if (code === CHANGE_RESOLUTION) {
@@ -183,35 +202,38 @@ window.electron.ipcRenderer.on(RECORD_PAGE, (_event, code, data) => {
         confirmButtonText: '确认',
         cancelButtonText: '取消',
         type: 'primary'
-      }).then(() => {
-        utils.ipcRenderer.send(RELAUNCH)
       })
+        .then(() => {
+          utils.ipcRenderer.send(RELAUNCH)
+        })
+        .catch(() => {})
     }
   } else if (code === UPDATE_UPLOAD_PROGRESS) {
     const { index, total } = data
     percentage.value = Math.floor((index / total) * 100)
   } else if (code === TRANSCODE_COMPLETE) {
-    ElNotification({
-      duration: 0,
-      title: '转码成功',
-      message: '可以开始上传了',
-      type: 'success',
-      customClass: 'small-notification'
-    })
-    disableUploadBtn.value = false
+    transCodeProgress.value = 100
+    setTimeout(() => {
+      showTransCodeProgress.value = false
+      transCodeProgress.value = 0
+      disableUploadBtn.value = false
+      ElNotification({
+        duration: 0,
+        title: '转码成功',
+        message: '可以开始上传了',
+        type: 'success',
+        customClass: 'small-notification'
+      })
+    }, 500)
+  } else if (code === TRANSCODE_PROGRESS) {
+    console.log('转码进度', data)
+    transCodeProgress.value = data
   }
 })
 
 const globalConfigStore = useGlobalConfigStore()
 
 const percentage = ref(0)
-const colors = [
-  { color: '#f56c6c', percentage: 20 },
-  { color: '#e6a23c', percentage: 40 },
-  { color: '#5cb87a', percentage: 60 },
-  { color: '#1989fa', percentage: 80 },
-  { color: '#6f7ad3', percentage: 100 }
-]
 
 // DOM 引用
 const videoRef = ref<HTMLVideoElement | null>(null)
@@ -465,6 +487,7 @@ const startRecording = async () => {
       // 等待所有 pending 的保存任务完成
       await Promise.all(pendingSaves)
       pendingSaves.length = 0
+      showTransCodeProgress.value = true
       const { success, message, data, error } = await utils.ipcRenderer.invoke(REPAIR_VIDEO, {
         uuid
       })
@@ -676,6 +699,11 @@ const reloadDevice = async () => {
 </script>
 
 <style lang="scss">
+.custom-progress .el-progress--line {
+  margin-bottom: 15px;
+  max-width: 600px;
+}
+
 .video-container {
   display: flex;
   justify-content: center;

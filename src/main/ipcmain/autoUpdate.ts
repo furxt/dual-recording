@@ -1,25 +1,20 @@
-import type { HandleFunction } from './handler'
-import { autoUpdate } from '@main/utils'
+import { autoUpdateUtil } from '@main/utils'
 import { DOWNLOAD_UPDATE, INSTALL_UPDATE, CHECK_UPDATE } from '@constants/index'
-
-export const autoUpdateHandleHandlerMap = new Map<string, HandleFunction>([
-  [CHECK_UPDATE, autoUpdate.autoUpdateApp]
-])
 
 export const autoUpdateHandleHandlerArr = [
   {
     code: CHECK_UPDATE,
-    handler: autoUpdate.autoUpdateApp
+    handler: autoUpdateUtil.autoUpdateApp
   }
 ]
 
 export const autoUpdateOnHandlerArr = [
   {
     code: DOWNLOAD_UPDATE,
-    handler: autoUpdate.downloadUpdate
+    handler: autoUpdateUtil.downloadUpdate
   },
   {
     code: INSTALL_UPDATE,
-    handler: autoUpdate.installUpdate
+    handler: autoUpdateUtil.installUpdate
   }
 ]

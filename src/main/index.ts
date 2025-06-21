@@ -1,8 +1,9 @@
 import { app, BrowserWindow, dialog } from 'electron'
 import { electronApp, optimizer, is, platform } from '@electron-toolkit/utils'
+import { commonUtil, windowUtil, trayUtil } from './utils'
+import { logger } from './utils/logger'
 import icon from '../../resources/icon.png?asset'
 import windowsTray from '../../resources/windowsTray.png?asset'
-import utils from './utils'
 import './ipcmain'
 
 // This method will be called when Electron has finished
@@ -10,20 +11,15 @@ import './ipcmain'
 // Some APIs can only be used after this event occurs.
 export let mainWindow: BrowserWindow | null = null
 
-const {
-  logger: { logger },
-  common: { generateErrorMsg }
-} = utils
-
 // 主进程全局异常捕获
 process.on('uncaughtException', (error, origin) => {
   const errorMessage = `
 【主进程未捕获的异常】
-${generateErrorMsg(error)}
+${commonUtil.generateErrorMsg(error)}
 错误来源: ${origin}
 `
   logger.error(errorMessage)
-  if (is.dev) utils.common.sendError(mainWindow!, '程序异常')
+  if (is.dev) commonUtil.sendError(mainWindow!, '程序异常')
 })
 
 process.on('unhandledRejection', (reason) => {
@@ -37,7 +33,7 @@ ${reason instanceof Error ? reason.stack : '(非 Error 对象，无堆栈信息)
 原始数据: ${JSON.stringify(reason, null, 2)}
 `
   logger.error(errorMessage)
-  if (is.dev) utils.common.sendError(mainWindow!, '程序异常')
+  if (is.dev) commonUtil.sendError(mainWindow!, '程序异常')
 })
 
 if (!app.requestSingleInstanceLock()) {
@@ -94,13 +90,14 @@ app.whenReady().then(async () => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  mainWindow = await utils.window.createMainWindow(icon)
-  utils.tray.createTray(windowsTray, mainWindow)
+  mainWindow = await windowUtil.createMainWindow(icon)
+  trayUtil.createTray(windowsTray, mainWindow)
+  // Attach a title bar to the window
 
   app.on('activate', () => {
     // On macOS it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
-    if (BrowserWindow.getAllWindows().length === 0) utils.window.createMainWindow(icon)
+    if (BrowserWindow.getAllWindows().length === 0) windowUtil.createMainWindow(icon)
   })
 })
 
@@ -117,7 +114,7 @@ export default {
   mainWindow
 }
 
-if (utils.common.APP_ENV !== 'production')
+if (commonUtil.APP_ENV !== 'production')
   setInterval(() => {
     const mem = process.memoryUsage()
     logger.warn(`主进程内存使用: ${(mem.rss / 1024 / 1024).toFixed(2)} MB`)

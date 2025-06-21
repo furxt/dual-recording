@@ -5,7 +5,7 @@ import { WINDOW_SIZE, localConf } from './globalConf'
 import { checkFfmpegHomePath } from './ffmpeg'
 import { sendApp } from './send'
 import { windowSizeArray } from './common'
-import path from 'path'
+import { join } from 'path'
 
 export const createMainWindow = async (icon: NativeImage | string): Promise<BrowserWindow> => {
   // 如果之前存在 mainWindow，则先关闭它
@@ -14,12 +14,13 @@ export const createMainWindow = async (icon: NativeImage | string): Promise<Brow
     show: false,
     // alwaysOnTop: true, // 窗口置顶
     autoHideMenuBar: true,
-    frame: false, // 这将隐藏默认的标题栏
+    // frame: false, // 这将隐藏默认的标题栏
+    titleBarStyle: 'hidden',
     resizable: false, // 禁止调整大小
     // skipTaskbar: true, // 禁止在任务栏中显示
     ...(platform.isWindows || platform.isLinux ? { icon } : {}),
     webPreferences: {
-      preload: path.join(__dirname, '../preload/index.js'),
+      preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
       webSecurity: false,
       allowRunningInsecureContent: false
@@ -49,7 +50,7 @@ export const createMainWindow = async (icon: NativeImage | string): Promise<Brow
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
   } else {
-    mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'))
+    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
 
   // 等待页面加载完成后发送请求

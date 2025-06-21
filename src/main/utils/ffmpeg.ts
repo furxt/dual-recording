@@ -1,15 +1,14 @@
-import fs from 'fs'
-import path from 'path'
+import { join } from 'path'
+import { existsSync } from 'fs'
 import { spawn } from 'child_process'
 import { app, dialog } from 'electron'
-import { globalConf } from './index'
+import { localConf, FFMPEG_HOME_PATH } from './globalConf'
 import { logger } from './logger'
 import { mainWindow } from '@main/index'
 import { platform } from '@electron-toolkit/utils'
 
 export const getFfmpegPath = (): string => {
-  const { localConf, FFMPEG_HOME_PATH } = globalConf
-  return path.join(
+  return join(
     localConf.get(FFMPEG_HOME_PATH) as string,
     'bin',
     platform.isWindows ? 'ffmpeg.exe' : 'ffmpeg'
@@ -17,9 +16,8 @@ export const getFfmpegPath = (): string => {
 }
 
 export const checkFfmpegHomePath = async (): Promise<void> => {
-  const { localConf, FFMPEG_HOME_PATH } = globalConf
   const ffmpegHomePath = localConf.get(FFMPEG_HOME_PATH) as string
-  if (!ffmpegHomePath || !fs.existsSync(ffmpegHomePath) || !fs.existsSync(getFfmpegPath())) {
+  if (!ffmpegHomePath || !existsSync(ffmpegHomePath) || !existsSync(getFfmpegPath())) {
     const choice = dialog.showMessageBoxSync(mainWindow!, {
       type: 'question',
       buttons: ['确定', '取消'],
@@ -49,14 +47,13 @@ export const setFfmpegHomePath = async (initFlag): Promise<void> => {
 
   const selectedFolderPath = result.filePaths[0]
 
-  logger.info(`用户选择的配置ffmpeg文件夹: ${selectedFolderPath}`)
+  logger.debug(`用户选择的配置ffmpeg文件夹: ${selectedFolderPath}`)
 
-  const ffmpegPath = path.join(selectedFolderPath, 'bin', 'ffmpeg.exe')
-  if (!fs.existsSync(ffmpegPath)) {
+  const ffmpegPath = join(selectedFolderPath, 'bin', 'ffmpeg.exe')
+  if (!existsSync(ffmpegPath)) {
     await confirmSetFfmpegHomePath(initFlag)
   } else {
     // 保存配置
-    const { localConf, FFMPEG_HOME_PATH } = globalConf
     localConf.set(FFMPEG_HOME_PATH, selectedFolderPath)
   }
 }
@@ -84,32 +81,47 @@ const confirmSetFfmpegHomePath = async (initFlag): Promise<void> => {
  * 运行 FFmpeg 任务
  * @param ffmpegPath FFmpeg 的路径
  * @param args FFmpeg 的参数
+ * @param callback  进度回调函数, 函数的入参就是整体进度数值, 然后自行处理, 但这个数值不太精确, 最终你还是要 await 确认执行完了
  */
-export const runFFmpegTranscode = (ffmpegPath: string, args: string[]): Promise<void> => {
+export const runFFmpegTranscode = (
+  ffmpegPath: string,
+  args: string[],
+  callback?: (progress: number) => void
+): Promise<void> => {
   return new Promise((resolve, reject) => {
     const ffmpeg = spawn(ffmpegPath, args)
 
-    // let stdoutBuffer = ''
-    // 监听标准输出（stdout）
-    // ffmpeg.stdout.on('data', (data) => {
-    //   const output = data.toString()
-    //   stdoutBuffer += output
-    // })
-
     // 监听错误输出（stderr）
-    let stderrBuffer = ''
+    let stdOutput = ''
+    let totalDuration: number | null = null
     ffmpeg.stderr.on('data', (data) => {
-      const errorOutput = data.toString()
-      stderrBuffer += errorOutput
-      // logger.error(`FFmpeg 执行时的错误信息: ${errorOutput}`) // 实时打印 stderr
+      stdOutput = data.toString()
+      // logger.debug(`FFmpeg 执行时输出的信息: ${line}`)
+
+      // 提取 duration（总时长）
+      const durationMatch = stdOutput.match(/Duration:\s*(\d{2}:\d{2}:\d{2}\.\d{2})/)
+      if (durationMatch) {
+        totalDuration = parseTimeToSeconds(durationMatch[1])
+        logger.info(`总时长: ${totalDuration}s`)
+      }
+      // 提取当前 time
+      const timeMatch = stdOutput.match(/time=(\d{2}:\d{2}:\d{2}\.\d{2})/)
+      if (timeMatch && totalDuration) {
+        const currentTime = parseTimeToSeconds(timeMatch[1])
+        const progress = Math.min((currentTime / totalDuration) * 100, 100)
+        if (callback) {
+          callback(Math.floor(progress))
+        }
+        logger.debug(`当前进度: ${Math.floor(progress)}%`)
+      }
     })
 
     ffmpeg.on('close', (code) => {
       if (code === 0) {
-        logger.success(`FFmpeg 执行命令【${ffmpegPath} ${args.join(' ')}】成功`)
+        logger.debug(`FFmpeg 执行命令【${ffmpegPath} ${args.join(' ')}】成功`)
         resolve()
       } else {
-        const errorMessage = `FFmpeg 执行命令【${ffmpegPath} ${args.join(' ')}】失败, 退出码: ${code}\nstderr 完整输出:\n${stderrBuffer}`
+        const errorMessage = `FFmpeg 执行命令【${ffmpegPath} ${args.join(' ')}】失败, 退出码: ${code}\nstderr 完整输出:\n${stdOutput}`
         logger.error(errorMessage)
         reject(new Error(errorMessage))
       }
@@ -123,6 +135,12 @@ export const runFFmpegTranscode = (ffmpegPath: string, args: string[]): Promise<
     // 如果你想主动中断任务，可以调用 ffmpeg.kill()
     // ffmpeg.kill(); // 手动杀死子进程
   })
+}
+
+// 将 HH:mm:ss.SS 格式转换成秒
+function parseTimeToSeconds(timeStr: string): number {
+  const parts = timeStr.split(':').map(parseFloat)
+  return parts[0] * 3600 + parts[1] * 60 + parts[2]
 }
 
 export default {

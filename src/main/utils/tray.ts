@@ -1,13 +1,14 @@
 import { app, Tray, Menu, NativeImage } from 'electron'
-import { common, globalConf, ffmpeg, send } from './index'
+// import { common, globalConf, ffmpeg, send } from './index'
+import { windowSizeArray } from './common'
+import { WINDOW_SIZE, localConf } from './globalConf'
+import { setFfmpegHomePath } from './ffmpeg'
+import { sendApp, sendRecord } from './send'
 import { PRIMARY_MESSAGE, CHANGE_RESOLUTION } from '@constants/index'
 export const createTray = (
   icon: NativeImage | string,
   mainWindow: Electron.BrowserWindow
 ): void => {
-  const { windowSizeArray } = common
-  const { WINDOW_SIZE, localConf } = globalConf
-
   // const tray = new Tray(path.join(app.getAppPath(), 'resources', 'windowsTray.png')) // 替换为你的图标路径
   const tray = new Tray(icon) // 替换为你的图标路径
 
@@ -15,7 +16,7 @@ export const createTray = (
     {
       label: '配置ffmpeg',
       click: async () => {
-        ffmpeg.setFfmpegHomePath(false)
+        setFfmpegHomePath(false)
       }
     },
     {
@@ -32,10 +33,10 @@ export const createTray = (
               0 <= mainWindow.getContentSize()[0] - windowSize.windowWidth &&
               mainWindow.getContentSize()[0] - windowSize.windowWidth <= 5
             ) {
-              send.sendApp(mainWindow, PRIMARY_MESSAGE, '当前分辨率已设置为480p')
+              sendApp(mainWindow, PRIMARY_MESSAGE, '当前分辨率已设置为480p')
               return
             }
-            send.sendRecord(mainWindow, CHANGE_RESOLUTION)
+            sendRecord(mainWindow, CHANGE_RESOLUTION)
           }
         },
         {
@@ -49,10 +50,10 @@ export const createTray = (
               0 <= mainWindow.getContentSize()[0] - windowSize.windowWidth &&
               mainWindow.getContentSize()[0] - windowSize.windowWidth <= 5
             ) {
-              send.sendApp(mainWindow, PRIMARY_MESSAGE, '当前分辨率已设置为720p')
+              sendApp(mainWindow, PRIMARY_MESSAGE, '当前分辨率已设置为720p')
               return
             }
-            send.sendRecord(mainWindow, CHANGE_RESOLUTION)
+            sendRecord(mainWindow, CHANGE_RESOLUTION)
           }
         }
       ]

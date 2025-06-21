@@ -7,7 +7,7 @@
         v-if="isDownloadUpdateApp"
         class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
       >
-        <el-progress type="dashboard" :percentage="percentage" :color="colors" />
+        <el-progress type="dashboard" :percentage="percentage" :color="progressConstant.colors" />
       </div>
 
       <!-- <div class="flex">
@@ -19,7 +19,9 @@
 </template>
 
 <script setup lang="ts">
+import { progressConstant } from './constants'
 import type { LoadingInstance } from 'element-plus/es/components/loading/src/loading'
+import { useGlobalConfigStore } from './stores'
 import utils from './utils'
 import {
   DOWNLOAD_UPDATE,
@@ -28,6 +30,7 @@ import {
   CHECK_UPDATE,
   PRIMARY_MESSAGE,
   APP_PAGE,
+  APP_ICON_PATH,
   UPDATE_AVAILABLE,
   DOWNLOAD_PROGRESS,
   CLOSE_WINDOW,
@@ -36,6 +39,8 @@ import {
 } from '@constants/index'
 
 const showCloseWindowMsgBox = ref(false)
+
+const globalConfigStore = useGlobalConfigStore()
 
 window.electron.ipcRenderer.on(APP_PAGE, (_event, code, data) => {
   if (code === PRIMARY_MESSAGE) {
@@ -48,15 +53,17 @@ window.electron.ipcRenderer.on(APP_PAGE, (_event, code, data) => {
       confirmButtonText: '确认',
       cancelButtonText: '取消',
       type: 'primary'
-    }).then(() => {
-      utils.ipcRenderer.send(DOWNLOAD_UPDATE)
-      loading = ElLoading.service({
-        lock: true,
-        background: 'rgba(250, 250, 250, 0.7)', // 白色半透明背景
-        customClass: 'transparent-loading' // 自定义类名
-      })
-      isDownloadUpdateApp.value = true
     })
+      .then(() => {
+        utils.ipcRenderer.send(DOWNLOAD_UPDATE)
+        loading = ElLoading.service({
+          lock: true,
+          background: 'rgba(250, 250, 250, 0.7)', // 白色半透明背景
+          customClass: 'transparent-loading' // 自定义类名
+        })
+        isDownloadUpdateApp.value = true
+      })
+      .catch(() => {})
   } else if (code === DOWNLOAD_PROGRESS) {
     console.log('下载更新进度条')
     percentage.value = data
@@ -107,13 +114,6 @@ window.electron.ipcRenderer.on(APP_PAGE, (_event, code, data) => {
 let loading: LoadingInstance | null
 const isDownloadUpdateApp = ref(false)
 const percentage = ref(0)
-const colors = [
-  { color: '#f56c6c', percentage: 20 },
-  { color: '#e6a23c', percentage: 40 },
-  { color: '#5cb87a', percentage: 60 },
-  { color: '#1989fa', percentage: 80 },
-  { color: '#6f7ad3', percentage: 100 }
-]
 
 // 新版本可用
 // window.electron.ipcRenderer.on('update-available', (_event, version) => {
@@ -167,6 +167,8 @@ const colors = [
 // })
 
 onMounted(async () => {
+  const appIconPath = await utils.ipcRenderer.invoke(APP_ICON_PATH)
+  globalConfigStore.config.appIconPath = appIconPath
   // 检查更新
   await utils.ipcRenderer.invoke(CHECK_UPDATE)
 })

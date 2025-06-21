@@ -1,5 +1,5 @@
 import Logger from 'electron-log'
-import path from 'path'
+import { join } from 'path'
 import { app } from 'electron'
 import { dayjs } from 'element-plus'
 import { is } from '@electron-toolkit/utils'
@@ -18,8 +18,8 @@ const dateStr = dayjs().format('YYYY-MM-DD')
 // 自定义文件保存位置为安装目录下的 logs\年-月-日.log
 Logger.transports.file.resolvePathFn = () => {
   return is.dev
-    ? path.join(app.getAppPath(), 'logs', dateStr + '.log')
-    : path.join(app.getPath('exe'), '..', 'logs', dateStr + '.log')
+    ? join(app.getAppPath(), 'logs', dateStr + '.log')
+    : join(app.getPath('exe'), '..', 'logs', dateStr + '.log')
 }
 
 // 有六个日志级别error, warn, info, verbose, debug, silly。默认是silly

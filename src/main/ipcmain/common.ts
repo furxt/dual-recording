@@ -1,19 +1,17 @@
 import { app } from 'electron'
 import { is } from '@electron-toolkit/utils'
 import { mainWindow } from '@main/index'
-import utils from '@main/utils'
+import { localConf, WINDOW_SIZE } from '@main/utils/globalConf'
+import { logger } from '@main/utils/logger'
+import { join } from 'path'
 import {
   WINDOW_CLOSE,
   WINDOW_MINIMIZE,
   RELAUNCH,
   APP_VERSION,
+  APP_ICON_PATH,
   VIDEO_CONFIG
 } from '@constants/index'
-
-const {
-  logger: { logger },
-  globalConf: { localConf, WINDOW_SIZE }
-} = utils
 
 const windowClose = (): void => {
   // 移除监听器避免循环
@@ -48,6 +46,11 @@ const getAppVersion = (): string => {
   return app.getVersion()
 }
 
+// 获取应用图标路径
+const getAppIconPath = (): string => {
+  return join(app.getAppPath(), 'resources', 'icon.png')
+}
+
 // 获取视频配置
 const getVideoConfig = (): {
   width: number
@@ -62,6 +65,10 @@ export const commonHandleHandlerArr = [
   {
     code: APP_VERSION,
     handler: getAppVersion
+  },
+  {
+    code: APP_ICON_PATH,
+    handler: getAppIconPath
   },
   {
     code: VIDEO_CONFIG,

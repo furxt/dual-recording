@@ -4,6 +4,7 @@ const WINDOW_CLOSE = 'window-close'
 const WINDOW_MINIMIZE = 'window-minimize'
 const RELAUNCH = 'relaunch'
 const APP_VERSION = 'app-version'
+const APP_ICON_PATH = 'app-icon-path'
 const VIDEO_CONFIG = 'video-config'
 const CHECK_UPDATE = 'check-update'
 const RECORD_LOG = 'record-log'
@@ -24,6 +25,7 @@ const APP_PAGE = 'app-page'
 const RECORD_PAGE = 'record-page'
 const UNREGISTER_HANDLER = 'unregister-handler'
 const REGISTER_HANDLER = 'register-handler'
+const TRANSCODE_PROGRESS = 'transcode-progress'
 
 export {
   DOWNLOAD_UPDATE,
@@ -32,6 +34,7 @@ export {
   WINDOW_MINIMIZE,
   RELAUNCH,
   APP_VERSION,
+  APP_ICON_PATH,
   VIDEO_CONFIG,
   CHECK_UPDATE,
   RECORD_LOG,
@@ -51,5 +54,6 @@ export {
   APP_PAGE,
   RECORD_PAGE,
   UNREGISTER_HANDLER,
-  REGISTER_HANDLER
+  REGISTER_HANDLER,
+  TRANSCODE_PROGRESS
 }

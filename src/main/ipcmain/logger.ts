@@ -1,5 +1,5 @@
 import { IpcMainInvokeEvent } from 'electron'
-import utils from '@main/utils'
+import { logger } from '@main/utils/logger'
 import { RECORD_LOG } from '@constants/index'
 
 const recordLog = (
@@ -7,7 +7,6 @@ const recordLog = (
   level: string = 'info',
   arg: string | string[]
 ): void => {
-  const { logger } = utils.logger
   switch (level) {
     case 'info':
       logger.info(arg)

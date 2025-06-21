@@ -1,9 +1,9 @@
-import fs from 'fs'
+import { WriteStream, createWriteStream } from 'fs'
 import { logger } from './logger'
 import { generateErrorMsg } from './common'
 
 class FileWriter {
-  private writeStream: fs.WriteStream | null = null
+  private writeStream: WriteStream | null = null
   private outputFilePath: string
   private isClosed = false
 
@@ -13,7 +13,7 @@ class FileWriter {
   }
 
   open(): void {
-    this.writeStream = fs.createWriteStream(this.outputFilePath, { flags: 'a' })
+    this.writeStream = createWriteStream(this.outputFilePath, { flags: 'a' })
     logger.debug(`${this.outputFilePath} 输入流已经打开`)
     this.writeStream.on('error', (err) => {
       const errMsg = generateErrorMsg(err)

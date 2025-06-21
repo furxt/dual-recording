@@ -1,14 +1,13 @@
-import fs from 'fs'
-import path from 'path'
+import { stat } from 'fs/promises'
+import { basename, extname } from 'path'
 import axios from 'axios'
-import utils from '@main/utils'
+import { logger } from '@main/utils/logger'
+import { getChunkMD5 } from '@main/utils/common'
+import { sendUtil } from '@main/utils'
 import { IpcMainInvokeEvent } from 'electron'
 import { UPLOAD_FILE, UPDATE_UPLOAD_PROGRESS } from '@constants/index'
 import { mainWindow } from '@main/index'
 
-const {
-  logger: { logger }
-} = utils
 // 配置
 const CHUNK_SIZE = 1024 * 1024 * 2 // 2MB per chunk
 
@@ -27,8 +26,8 @@ const uploadFile = async (
     success: false
   }
   try {
-    const fileSize = (await fs.promises.stat(localFilePath)).size
-    const fileId = path.basename(localFilePath, path.extname(localFilePath))
+    const fileSize = (await stat(localFilePath)).size
+    const fileId = basename(localFilePath, extname(localFilePath))
     const totalChunks = Math.ceil(fileSize / CHUNK_SIZE)
     logger.info(`开始上传文件: ${localFilePath}, 共 ${totalChunks} 个分片, fileId: ${fileId}`)
     for (let i = 0; i < totalChunks; i++) {
@@ -36,12 +35,7 @@ const uploadFile = async (
       const end = Math.min(fileSize - 1, start + CHUNK_SIZE - 1) // 注意结束位置是闭区间
       const chunkSize = end - start + 1
       // 计算分片的 MD5
-      const { md5: chunkMD5, buffer } = await utils.common.getChunkMD5(
-        true,
-        localFilePath,
-        start,
-        chunkSize
-      )
+      const { md5: chunkMD5, buffer } = await getChunkMD5(true, localFilePath, start, chunkSize)
 
       const formData = new FormData()
       formData.append('file', new Blob([buffer]), `${i}`) // 模拟文件对象
@@ -61,7 +55,7 @@ const uploadFile = async (
         logger.error(`上传 ${fileId} 的第 ${i + 1}/${totalChunks} 片失败`)
         return result
       } else {
-        utils.send.sendRecord(mainWindow!, UPDATE_UPLOAD_PROGRESS, {
+        sendUtil.sendRecord(mainWindow!, UPDATE_UPLOAD_PROGRESS, {
           index: i + 1,
           total: totalChunks
         })
@@ -82,7 +76,7 @@ const uploadFile = async (
     } else {
       logger.success(`${fileId} 文件合并完成`)
     }
-    const { md5: fileMD5 } = await utils.common.getChunkMD5(false, localFilePath, 0, fileSize)
+    const { md5: fileMD5 } = await getChunkMD5(false, localFilePath, 0, fileSize)
 
     const {
       data: { code: resultCode }

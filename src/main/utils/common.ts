@@ -1,6 +1,6 @@
-import path from 'path'
-import fs from 'fs'
-import crypto from 'crypto'
+import { join } from 'path'
+import { createReadStream } from 'fs'
+import { createHash } from 'crypto'
 import { sendApp } from './send'
 import { is } from '@electron-toolkit/utils'
 import { app, BrowserWindow } from 'electron'
@@ -15,8 +15,8 @@ const projectName = 'dual-recording'
 export const rootDir = is.dev ? app.getAppPath() : app.getPath('exe')
 // 影像保存的路径
 export const videoDir = is.dev
-  ? path.join(rootDir, 'videos')
-  : path.join(app.getPath('appData'), projectName, 'videos')
+  ? join(rootDir, 'videos')
+  : join(app.getPath('appData'), projectName, 'videos')
 
 export const windowSizeArray: WindowSizeInfo[] = [
   {
@@ -74,8 +74,8 @@ export const getChunkMD5 = (
 ): Promise<FileHashResult> => {
   return new Promise((resolve, reject) => {
     const buffers: Buffer[] = []
-    const hash = crypto.createHash('md5')
-    const stream = fs.createReadStream(filePath, { start: offset, end: offset + size - 1 })
+    const hash = createHash('md5')
+    const stream = createReadStream(filePath, { start: offset, end: offset + size - 1 })
 
     stream.on('data', (chunk) => {
       hash.update(chunk)
@@ -101,5 +101,6 @@ export default {
   sendError,
   sleep,
   generateErrorMsg,
-  getChunkMD5
+  getChunkMD5,
+  APP_ENV
 }

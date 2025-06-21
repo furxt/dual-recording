@@ -4,7 +4,7 @@ import eslintPluginVue from 'eslint-plugin-vue'
 import vueParser from 'vue-eslint-parser'
 
 export default tseslint.config(
-  { ignores: ['**/node_modules', '**/dist', '**/out'] },
+  { ignores: ['**/node_modules', '**/dist', '**/out', 'scripts/**/*.js'] },
   // ✅ 必须包含这个配置块才能完全支持 Vue 的规则选项
   eslintPluginVue.configs['flat/recommended'],
   tseslint.configs.recommended,
@@ -19,15 +19,6 @@ export default tseslint.config(
         extraFileExtensions: ['.vue'],
         parser: tseslint.parser
       }
-    },
-    rules: {
-      'vue/no-unused-components': [
-        'error',
-        {
-          ignore: ['el-*'],
-          ignoreWhenBindingPresent: true
-        }
-      ]
     }
   },
   {
@@ -45,5 +36,6 @@ export default tseslint.config(
       ]
     }
   },
+
   eslintConfigPrettier
 )

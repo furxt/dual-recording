@@ -58,5 +58,7 @@ export const autoUpdateApp = (): void => {
 }
 
 export default {
-  autoUpdateApp
+  autoUpdateApp,
+  downloadUpdate,
+  installUpdate
 }

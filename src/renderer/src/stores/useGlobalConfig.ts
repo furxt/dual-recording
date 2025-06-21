@@ -16,6 +16,7 @@ export const useGlobalConfigStore = defineStore(
 
 // 定义类型
 interface Config {
-  audioinputDeviceId: string | null
-  videoinputDeviceId: string | null
+  appIconPath?: string
+  audioinputDeviceId?: string | null
+  videoinputDeviceId?: string | null
 }

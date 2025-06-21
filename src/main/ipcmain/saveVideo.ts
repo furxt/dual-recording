@@ -1,14 +1,14 @@
-import fs from 'fs'
-import path from 'path'
-import PQueue from 'p-queue'
-import utils, { FileWriter } from '@main/utils'
+import { existsSync, mkdirSync } from 'fs'
+import { unlink } from 'fs/promises'
+import { join } from 'path'
+import { videoDir } from '@main/utils/common'
+import { logger } from '@main/utils/logger'
+import { getFfmpegPath, runFFmpegTranscode } from '@main/utils/ffmpeg'
+import { FileWriter, sendUtil } from '@main/utils'
 import { IpcMainInvokeEvent } from 'electron'
 import { mainWindow } from '@main/index'
-import { SAVE_CHUNK, REPAIR_VIDEO, TRANSCODE_COMPLETE } from '@constants/index'
-
-const { videoDir } = utils.common
-const { logger } = utils.logger
-const { getFfmpegPath, runFFmpegTranscode } = utils.ffmpeg
+import { SAVE_CHUNK, REPAIR_VIDEO, TRANSCODE_COMPLETE, TRANSCODE_PROGRESS } from '@constants/index'
+import PQueue from 'p-queue'
 
 let fileWriter: FileWriter | null
 
@@ -22,14 +22,14 @@ const saveChunk = async (
   _event: IpcMainInvokeEvent,
   { buffer, uuid, chunkId }
 ): Promise<Result<void>> => {
-  const folderPath = path.join(videoDir, uuid)
-  if (!fs.existsSync(folderPath)) {
-    fs.mkdirSync(folderPath, { recursive: true })
-    logger.success(`${folderPath} 文件夹创建成功`)
+  const folderPath = join(videoDir, uuid)
+  if (!existsSync(folderPath)) {
+    mkdirSync(folderPath, { recursive: true })
+    logger.success(`开始录像, ${folderPath} 文件夹创建成功`)
   }
 
   // 写入 webm 分片文件
-  const outputFilePath = path.join(folderPath, uuid)
+  const outputFilePath = join(folderPath, uuid)
   if (!fileWriter) {
     fileWriter = new FileWriter(outputFilePath)
   }
@@ -48,9 +48,9 @@ const saveChunk = async (
  */
 const repairVideo = async (_event: IpcMainInvokeEvent, { uuid }): Promise<Result<string>> => {
   const ffmpegPath = getFfmpegPath()
-  const totalFragmentFile = path.join(videoDir, uuid, uuid)
-  const webmVideoPath = path.join(videoDir, uuid, `${uuid}.webm`)
-  const mp4VideoPath = path.join(videoDir, uuid, `${uuid}.mp4`)
+  const totalFragmentFile = join(videoDir, uuid, uuid)
+  const webmVideoPath = join(videoDir, uuid, `${uuid}.webm`)
+  const mp4VideoPath = join(videoDir, uuid, `${uuid}.mp4`)
 
   try {
     // 等待所有分片写完
@@ -58,16 +58,16 @@ const repairVideo = async (_event: IpcMainInvokeEvent, { uuid }): Promise<Result
     fileWriter?.close().then(() => {
       fileWriter = null
     })
+    logger.success(`录像结束, ${totalFragmentFile} 文件保存成功`)
 
     // 修复分片导致时间戳缺失的问题
     const fixedArgs = ['-i', totalFragmentFile, '-c', 'copy', '-fflags', '+genpts', webmVideoPath]
     await runFFmpegTranscode(ffmpegPath, fixedArgs)
-    logger.success(`ffmpeg 修复 ${totalFragmentFile} 文件完成, 已生成 ${webmVideoPath} 文件`)
-
+    logger.debug(`ffmpeg 修复 ${totalFragmentFile} 文件完成, 已生成 ${webmVideoPath} 文件`)
     // 使用 Promise 包装整个转码异步过程
     new Promise<void>((resolve, reject) => {
       try {
-        fs.promises.unlink(totalFragmentFile)
+        unlink(totalFragmentFile)
         const ffmpegArgs = [
           '-i',
           webmVideoPath,
@@ -87,9 +87,11 @@ const repairVideo = async (_event: IpcMainInvokeEvent, { uuid }): Promise<Result
         ]
         // 执行 FFmpeg 转码WebM → MP4
         logger.info(`开始转码 ${webmVideoPath} 文件...`)
-        runFFmpegTranscode(ffmpegPath, ffmpegArgs).then(() => {
+        runFFmpegTranscode(ffmpegPath, ffmpegArgs, (progress: number) => {
+          sendUtil.sendRecord(mainWindow!, TRANSCODE_PROGRESS, progress)
+        }).then(() => {
           logger.success(`ffmpeg ${webmVideoPath} 文件转码成功, 已生成 ${mp4VideoPath} 文件`)
-          utils.send.sendRecord(mainWindow!, TRANSCODE_COMPLETE)
+          sendUtil.sendRecord(mainWindow!, TRANSCODE_COMPLETE)
         })
         resolve()
       } catch (err) {
