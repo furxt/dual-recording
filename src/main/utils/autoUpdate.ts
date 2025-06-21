@@ -65,7 +65,7 @@ export const autoUpdateApp = (_event?: IpcMainInvokeEvent, needWarn?: boolean): 
     .checkForUpdates()
     .then(() => {
       if (!isUpdateAvailable) {
-        sendApp(mainWindow!, PRIMARY_MESSAGE, '你当前版本已是最新版本!')
+        if (needWarn) sendApp(mainWindow!, PRIMARY_MESSAGE, '你当前已是最新版本!')
       }
     })
     .catch((error) => {
