@@ -3,7 +3,12 @@ import { sendApp } from './send'
 import { logger } from './logger'
 import { generateErrorMsg, sendError } from './common'
 import { mainWindow } from '@main/index'
-import { UPDATE_AVAILABLE, DOWNLOAD_PROGRESS, UPDATE_DOWNLOADED } from '@constants/index'
+import {
+  UPDATE_AVAILABLE,
+  DOWNLOAD_PROGRESS,
+  UPDATE_DOWNLOADED,
+  PRIMARY_MESSAGE
+} from '@constants/index'
 import { IpcMainInvokeEvent } from 'electron'
 /**
  * 用户确定是否下载更新
@@ -16,6 +21,7 @@ export const downloadUpdate = (): void => {
  * 退出并安装更新
  */
 export const installUpdate = (): void => {
+  mainWindow?.removeAllListeners('close')
   autoUpdater.quitAndInstall()
 }
 
@@ -23,8 +29,8 @@ export const installUpdate = (): void => {
  * 自动更新的逻辑
  */
 export const autoUpdateApp = (_event?: IpcMainInvokeEvent, needWarn?: boolean): void => {
-  console.log('开始检查更新', needWarn)
-  // 等待 3 秒再检查更新，确保窗口准备完成，用户进入系统
+  let isUpdateAvailable = false
+
   // 每次启动自动更新检查更新版本
   autoUpdater.logger = logger
   autoUpdater.disableWebInstaller = false
@@ -35,6 +41,7 @@ export const autoUpdateApp = (_event?: IpcMainInvokeEvent, needWarn?: boolean): 
   // })
   // 当有可用更新的时候触发。 更新将自动下载。
   autoUpdater.on('update-available', (info) => {
+    isUpdateAvailable = true
     // 检查到可用更新，交由用户提示是否下载
     const { version } = info
     logger.info(`检查有新版本可用: ${version}`)
@@ -54,16 +61,23 @@ export const autoUpdateApp = (_event?: IpcMainInvokeEvent, needWarn?: boolean): 
     // 下载完成之后，弹出对话框提示用户是否立即安装更新
     sendApp(mainWindow!, UPDATE_DOWNLOADED)
   })
-  autoUpdater.checkForUpdates().catch((error) => {
-    const errorMsg = generateErrorMsg(error)
-    logger.error(
-      `检查更新失败:
+  autoUpdater
+    .checkForUpdates()
+    .then(() => {
+      if (!isUpdateAvailable) {
+        sendApp(mainWindow!, PRIMARY_MESSAGE, '你当前版本已是最新版本!')
+      }
+    })
+    .catch((error) => {
+      const errorMsg = generateErrorMsg(error)
+      logger.error(
+        `检查更新失败:
       ${errorMsg}`
-    )
-    if (needWarn) {
-      sendError(mainWindow!, '检查更新失败!')
-    }
-  })
+      )
+      if (needWarn) {
+        sendError(mainWindow!, '检查更新失败!')
+      }
+    })
 }
 
 export default {

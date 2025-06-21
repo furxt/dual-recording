@@ -111,57 +111,6 @@ let loading: LoadingInstance | null
 const isDownloadUpdateApp = ref(false)
 const percentage = ref(0)
 
-// 新版本可用
-// window.electron.ipcRenderer.on('update-available', (_event, version) => {
-//   ElMessageBox.confirm(`检测到有新版本 ${version} 可用，是否下载更新？`, '更新提示', {
-//     closeOnClickModal: false,
-//     confirmButtonText: '确认',
-//     cancelButtonText: '取消',
-//     type: 'primary'
-//   })
-//     .then(() => {
-//       utils.ipcRenderer.send(DOWNLOAD_UPDATE)
-//       loading = ElLoading.service({
-//         lock: true,
-//         background: 'rgba(250, 250, 250, 0.7)', // 白色半透明背景
-//         customClass: 'transparent-loading' // 自定义类名
-//       })
-//       isDownloadUpdateApp.value = true
-//     })
-//     .catch(() => {})
-// })
-
-// 新版本下载进度
-// window.electron.ipcRenderer.on('download-progress', (_event, downloadPercent) => {
-//   percentage.value = downloadPercent
-// })
-
-// 新版本下载完成
-// window.electron.ipcRenderer.on('update-downloaded', () => {
-//   setTimeout(() => {
-//     if (loading) {
-//       loading?.close()
-//       loading = null
-//     }
-//     isDownloadUpdateApp.value = false
-//     ElMessageBox.confirm(`下载已完成，是否立即更新？`, '更新提示', {
-//       closeOnClickModal: false,
-//       confirmButtonText: '确认',
-//       cancelButtonText: '取消',
-//       type: 'success'
-//     })
-//       .then(() => {
-//         utils.ipcRenderer.send(INSTALL_UPDATE)
-//       })
-//       .catch(() => {})
-//   }, 500)
-// })
-
-// window.electron.ipcRenderer.on('catch-error', (_event, data) => {
-//   console.log('收到主进程的错误消息:', data)
-//   ElMessage.error(data)
-// })
-
 onMounted(async () => {
   // 检查更新
   utils.ipcRenderer.invoke(CHECK_UPDATE)
