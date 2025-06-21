@@ -4,7 +4,6 @@ const WINDOW_CLOSE = 'window-close'
 const WINDOW_MINIMIZE = 'window-minimize'
 const RELAUNCH = 'relaunch'
 const APP_VERSION = 'app-version'
-const APP_ICON_PATH = 'app-icon-path'
 const CHECK_UPDATE = 'check-update'
 const RECORD_LOG = 'record-log'
 const SAVE_CHUNK = 'save-chunk'
@@ -33,7 +32,6 @@ export {
   WINDOW_MINIMIZE,
   RELAUNCH,
   APP_VERSION,
-  APP_ICON_PATH,
   CHECK_UPDATE,
   RECORD_LOG,
   SAVE_CHUNK,

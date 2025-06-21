@@ -4,14 +4,7 @@ import { mainWindow } from '@main/index'
 import { localConf } from '@main/utils/globalConf'
 import { CONF_WINDOW_SIZE } from '@constants/index'
 import { logger } from '@main/utils/logger'
-import { join } from 'path'
-import {
-  WINDOW_CLOSE,
-  WINDOW_MINIMIZE,
-  RELAUNCH,
-  APP_VERSION,
-  APP_ICON_PATH
-} from '@constants/index'
+import { WINDOW_CLOSE, WINDOW_MINIMIZE, RELAUNCH, APP_VERSION } from '@constants/index'
 
 const windowClose = (): void => {
   // 移除监听器避免循环
@@ -46,20 +39,11 @@ const getAppVersion = (): string => {
   return app.getVersion()
 }
 
-// 获取应用图标路径
-const getAppIconPath = (): string => {
-  return join(app.getAppPath(), 'resources', 'icon.png')
-}
-
 // ipcMain.handle()
 export const commonHandleHandlerArr = [
   {
     code: APP_VERSION,
     handler: getAppVersion
-  },
-  {
-    code: APP_ICON_PATH,
-    handler: getAppIconPath
   }
 ]
 

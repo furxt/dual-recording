@@ -21,7 +21,6 @@
 <script setup lang="ts">
 import { progressConstant } from './constants'
 import type { LoadingInstance } from 'element-plus/es/components/loading/src/loading'
-import { useGlobalConfigStore } from './stores'
 import utils from './utils'
 import {
   DOWNLOAD_UPDATE,
@@ -30,7 +29,6 @@ import {
   CHECK_UPDATE,
   PRIMARY_MESSAGE,
   APP_PAGE,
-  APP_ICON_PATH,
   UPDATE_AVAILABLE,
   DOWNLOAD_PROGRESS,
   CLOSE_WINDOW,
@@ -39,8 +37,6 @@ import {
 } from '@constants/index'
 
 const showCloseWindowMsgBox = ref(false)
-
-const globalConfigStore = useGlobalConfigStore()
 
 window.electron.ipcRenderer.on(APP_PAGE, (_event, code, data) => {
   if (code === PRIMARY_MESSAGE) {
@@ -167,8 +163,6 @@ const percentage = ref(0)
 // })
 
 onMounted(async () => {
-  const appIconPath = await utils.ipcRenderer.invoke(APP_ICON_PATH)
-  globalConfigStore.config.appIconPath = appIconPath
   // 检查更新
   await utils.ipcRenderer.invoke(CHECK_UPDATE)
 })
