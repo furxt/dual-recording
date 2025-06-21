@@ -164,7 +164,7 @@ const percentage = ref(0)
 
 onMounted(async () => {
   // 检查更新
-  await utils.ipcRenderer.invoke(CHECK_UPDATE)
+  utils.ipcRenderer.invoke(CHECK_UPDATE)
 })
 </script>
 
