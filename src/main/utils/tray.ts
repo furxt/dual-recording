@@ -4,6 +4,7 @@ import { windowSizeArray } from './common'
 import { WINDOW_SIZE, localConf } from './globalConf'
 import { setFfmpegHomePath } from './ffmpeg'
 import { sendApp, sendRecord } from './send'
+import { showWindow } from './window'
 import { PRIMARY_MESSAGE, CHANGE_RESOLUTION } from '@constants/index'
 export const createTray = (
   icon: NativeImage | string,
@@ -28,6 +29,7 @@ export const createTray = (
           click: () => {
             const windowSize = windowSizeArray.find((e) => e.id === '480')
             localConf.set(WINDOW_SIZE, windowSize)
+            showWindow(mainWindow)
             if (
               windowSize &&
               0 <= mainWindow.getContentSize()[0] - windowSize.windowWidth &&
@@ -45,6 +47,7 @@ export const createTray = (
           click: () => {
             const windowSize = windowSizeArray.find((e) => e.id === '720')
             localConf.set(WINDOW_SIZE, windowSize)
+            showWindow(mainWindow)
             if (
               windowSize &&
               0 <= mainWindow.getContentSize()[0] - windowSize.windowWidth &&
@@ -70,11 +73,7 @@ export const createTray = (
   tray.setContextMenu(contextMenu)
 
   tray.on('click', () => {
-    if (mainWindow) {
-      if (mainWindow.isMinimized()) mainWindow.restore()
-      mainWindow.show()
-      mainWindow.focus()
-    }
+    showWindow(mainWindow)
   })
 }
 

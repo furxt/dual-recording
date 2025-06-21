@@ -72,4 +72,12 @@ export const createMainWindow = async (icon: NativeImage | string): Promise<Brow
   return mainWindow
 }
 
-export default { createMainWindow }
+export const showWindow = (window?: BrowserWindow): void => {
+  if (window) {
+    if (window.isMinimized()) window.restore()
+    window.show()
+    window.focus()
+  }
+}
+
+export default { createMainWindow, showWindow }
