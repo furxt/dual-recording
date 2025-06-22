@@ -74,8 +74,8 @@
       <div v-if="showRed" class="recording-indicator absolute top-3 right-3" />
 
       <!-- 提示层 -->
-      <div v-if="isPaused" class="overlay-message">当前录制已暂停</div>
-      <div>
+      <div v-if="isPaused" class="overlay-message absolute-center">当前录制已暂停</div>
+      <div class="absolute-center">
         <el-progress
           v-if="showUploadProgress"
           type="dashboard"

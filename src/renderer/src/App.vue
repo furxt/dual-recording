@@ -1,14 +1,11 @@
 <template>
   <Suspense>
     <div class="bg-gray-100 h-[100vh] app">
-      <TitleBar v-model:showCloseWindowMsgBox="showCloseWindowMsgBox" />
-      <Record />
-      <div
-        v-if="isDownloadUpdateApp"
-        class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
-      >
+      <div v-if="isDownloadUpdateApp" class="absolute-center">
         <el-progress type="dashboard" :percentage="percentage" :color="progressConstant.colors" />
       </div>
+      <TitleBar v-model:showCloseWindowMsgBox="showCloseWindowMsgBox" />
+      <Record />
 
       <!-- <div class="flex">
         <div class="w-[600px]">其他区域</div>

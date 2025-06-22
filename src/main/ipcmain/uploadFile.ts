@@ -39,7 +39,8 @@ const uploadFile = async (
       const { md5: chunkMD5, buffer } = await getChunkMD5(true, localFilePath, start, chunkSize)
 
       const formData = new FormData()
-      formData.append('file', new Blob([buffer]), `${i}`) // 模拟文件对象
+      // formData.append('file', new Blob([buffer]), `${i}`) // 模拟文件对象
+      formData.append('file', buffer, `${i}`)
       formData.append('chunkIndex', `${i}`)
       formData.append('chunkMD5', chunkMD5)
       formData.append('totalChunks', `${totalChunks}`)
