@@ -35,7 +35,10 @@
   <div class="flex flex-col items-center">
     <div class="flex items-center justify-center">
       <el-progress
-        v-show="showTransCodeProgress"
+        :style="{
+          visibility: showTransCodeProgress ? 'visible' : 'hidden',
+          width: `${videoConfig.width}px`
+        }"
         :percentage="transCodeProgress"
         :stroke-width="3"
         :color="progressConstant.colors"
@@ -43,7 +46,6 @@
         striped
         striped-flow
         :duration="10"
-        :style="{ width: `${videoConfig.width}px` }"
       />
     </div>
     <!-- 视频区域 -->
@@ -72,13 +74,8 @@
       <div v-if="showRed" class="recording-indicator absolute top-3 right-3" />
 
       <!-- 提示层 -->
-      <div
-        v-if="isPaused"
-        class="overlay-message absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
-      >
-        当前录制已暂停
-      </div>
-      <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+      <div v-if="isPaused" class="overlay-message">当前录制已暂停</div>
+      <div>
         <el-progress
           v-if="showUploadProgress"
           type="dashboard"
@@ -292,6 +289,7 @@ const loadDevices = async () => {
 }
 
 onMounted(async () => {
+  // 这里获取当前录制的视频分辨率，以便调整窗口大小
   const windowSizeInfo = (await conf.get(CONF_WINDOW_SIZE)) as WindowSizeInfo
   console.log('windowSizeInfo', windowSizeInfo)
   const {
@@ -299,46 +297,50 @@ onMounted(async () => {
   } = windowSizeInfo
   const aspectRatio = +(width / height).toFixed(3)
   videoConfig.value = { aspectRatio, width, height }
+  console.log(videoConfig.value)
+
+  // 如果store里面没有视频设备和音频设备信息, 就去配置文件读取
+  if (!globalConfigStore.config.videoinputDeviceId) {
+    const { VITE_VIDEO_INPUT } = import.meta.env
+    globalConfigStore.config.videoinputDeviceId = VITE_VIDEO_INPUT
+  }
+  if (!globalConfigStore.config.audioinputDeviceId) {
+    const { VITE_AUDIO_INPUT } = import.meta.env
+    globalConfigStore.config.audioinputDeviceId = VITE_AUDIO_INPUT
+  }
+
   await loadDevices()
-  const videoinputDevice = videoinputDevices.value.find(
-    (e) => e.deviceId === globalConfigStore.config.videoinputDeviceId
+  console.log(videoinputDevices.value, audioinputDevices.value)
+  console.log(
+    globalConfigStore.config.audioinputDeviceId,
+    globalConfigStore.config.videoinputDeviceId
   )
-  if (!videoinputDevice) {
-    globalConfigStore.config.videoinputDeviceId = null
+
+  // 防止设备已经被拔出, 就清空掉原来的设备信息
+  if (globalConfigStore.config.videoinputDeviceId) {
+    const videoinputDevice = videoinputDevices.value.find(
+      (e) => e.deviceId === globalConfigStore.config.videoinputDeviceId
+    )
+    console.log('初始化的videoinputDevice', videoinputDevice)
+    if (!videoinputDevice) {
+      globalConfigStore.config.videoinputDeviceId = null
+    } else {
+      settingForm.value.videoinputLabel = videoinputDevice.label
+    }
   }
-  const audioinputDevice = audioinputDevices.value.find(
-    (e) => e.deviceId === globalConfigStore.config.audioinputDeviceId
-  )
-  if (!audioinputDevice) {
-    globalConfigStore.config.audioinputDeviceId = null
+  if (globalConfigStore.config.audioinputDeviceId) {
+    const audioinputDevice = audioinputDevices.value.find(
+      (e) => e.deviceId === globalConfigStore.config.audioinputDeviceId
+    )
+    console.log('初始化的audioinputDevice', audioinputDevice)
+    if (!audioinputDevice) {
+      globalConfigStore.config.audioinputDeviceId = null
+    } else {
+      settingForm.value.audioinputLabel = audioinputDevice.label
+    }
   }
 
-  const audio = globalConfigStore.config.audioinputDeviceId
-    ? { deviceId: globalConfigStore.config.audioinputDeviceId }
-    : true
-
-  try {
-    mediaStream = await navigator.mediaDevices.getUserMedia({
-      audio,
-      video: { ...videoConfig.value, deviceId: globalConfigStore.config.videoinputDeviceId! }
-    })
-    const tracks = mediaStream.getTracks()
-    tracks.forEach((track) => {
-      const { kind } = track // 'audio' 或 'video'
-      if (kind === 'video') settingForm.value.videoinputLabel = track.label
-      else if (kind === 'audio') settingForm.value.audioinputLabel = track.label
-    })
-  } catch (error) {
-    console.error('获取媒体设备失败:', error)
-  }
-
-  if (!mediaStream) {
-    ElMessage.error('无法访问摄像头或麦克风，请检查权限设置')
-    return
-  }
-  if (videoRef.value) {
-    videoRef.value.srcObject = mediaStream
-  }
+  console.log('默认的设备配置', settingForm.value)
 })
 
 // 🔥 页面卸载前释放所有资源
@@ -435,14 +437,15 @@ const saveChunkToDB = async (blob: Blob | null, uuid: string, chunkId: number) =
 }
 
 const startRecording = async () => {
-  if (!mediaStream || isRecording.value) return
-
-  await reloadDevice()
+  // if (!mediaStream || isRecording.value) return
+  if (isRecording.value) return
+  const result = await reloadDevice()
+  if (!result) return
 
   setTimeout(() => {
     disableStopBtn.value = false
     disablePauseBtn.value = false
-  }, 1200)
+  }, 1100)
   showControls.value = false
   disableReplayBtn.value = true
   disableUploadBtn.value = true
@@ -455,7 +458,7 @@ const startRecording = async () => {
 
   // 获取原始音视频轨道
   // const videoTrack = mediaStream.getVideoTracks()[0]
-  const audioTrack = mediaStream.getAudioTracks()[0]
+  const audioTrack = mediaStream!.getAudioTracks()[0]
 
   // 获取 canvas 流
   if (canvasRef.value) {
@@ -676,13 +679,14 @@ const changeAudioInput = (val: string) => {
   reloadDevice()
 }
 
-const reloadDevice = async () => {
+const reloadDevice = async (): Promise<boolean> => {
   try {
     showControls.value = false
     const audio = globalConfigStore.config.audioinputDeviceId
       ? { deviceId: globalConfigStore.config.audioinputDeviceId }
       : true
-    if (!mediaStream || isRecording.value) return
+    if (isRecording.value) return false
+
     // 停止旧的 mediaStream，避免摄像头资源被占用
     if (mediaStream) {
       mediaStream.getTracks().forEach((track) => track.stop())
@@ -694,13 +698,16 @@ const reloadDevice = async () => {
         deviceId: globalConfigStore.config.videoinputDeviceId!
       }
     })
+
     if (videoRef.value) {
       videoRef.value.src = ''
       videoRef.value.srcObject = mediaStream
     }
+    return true
   } catch (error) {
     console.error('获取媒体设备失败:', error)
     ElMessage.error('当前设备不可用, 请检查设备是否正常!')
+    return false
   }
 }
 </script>
@@ -729,7 +736,7 @@ video,
 }
 
 .overlay-message {
-  font-size: 32px;
+  font-size: 24px;
   font-weight: bold;
   animation: blink 1500ms ease-in-out infinite;
   padding: 10px 20px;

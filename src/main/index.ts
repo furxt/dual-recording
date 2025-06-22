@@ -1,10 +1,12 @@
-import { app, BrowserWindow, dialog } from 'electron'
+import { app, BrowserWindow, dialog, Menu } from 'electron'
 import { electronApp, optimizer, is, platform } from '@electron-toolkit/utils'
 import { commonUtil, windowUtil, trayUtil } from './utils'
 import { logger } from './utils/logger'
 import icon from '../../resources/icon.png?asset'
 import windowsTray from '../../resources/windowsTray.png?asset'
 import './ipcmain'
+
+if (!is.dev) Menu.setApplicationMenu(null)
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
@@ -114,8 +116,10 @@ export default {
   mainWindow
 }
 
-if (commonUtil.APP_ENV !== 'production')
+if (commonUtil.APP_ENV !== 'production') {
+  logger.debug(JSON.stringify(process.versions, null, 2))
   setInterval(() => {
     const mem = process.memoryUsage()
     logger.warn(`主进程内存使用: ${(mem.rss / 1024 / 1024).toFixed(2)} MB`)
   }, 1000 * 10)
+}

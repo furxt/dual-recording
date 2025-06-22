@@ -57,16 +57,10 @@ export const createMainWindow = async (icon: NativeImage | string): Promise<Brow
   // 等待页面加载完成后发送请求
   mainWindow.webContents.on('did-finish-load', async () => {})
 
-  let isQuitting = false
   // 监听窗口关闭事件
   mainWindow.on('close', (event) => {
-    if (isQuitting) {
-      return
-    }
     event.preventDefault()
-    isQuitting = true
-    mainWindow?.show()
-    mainWindow?.focus()
+    showWindow(mainWindow!)
     sendApp(mainWindow!, CLOSE_WINDOW)
   })
 
