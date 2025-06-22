@@ -1,5 +1,5 @@
 import { stat } from 'fs/promises'
-import { basename, dirname, extname, join } from 'path'
+import { basename, extname } from 'path'
 import { logger } from '@main/utils/logger'
 import { getChunkMD5, bufferToStream } from '@main/utils/common'
 import { sendUtil } from '@main/utils'
