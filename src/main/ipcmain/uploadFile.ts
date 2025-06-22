@@ -44,7 +44,7 @@ const uploadFile = async (
       formData.append('chunkIndex', `${i}`)
       formData.append('chunkMD5', chunkMD5)
       formData.append('totalChunks', `${totalChunks}`)
-      logger.info(`正在上传 ${fileId} 的第 ${i + 1}/${totalChunks} 片...`)
+      logger.debug(`正在上传 ${fileId} 的第 ${i + 1}/${totalChunks} 片...`)
 
       const {
         data: { code }
@@ -61,13 +61,11 @@ const uploadFile = async (
           index: i + 1,
           total: totalChunks
         })
-        logger.success(`${fileId} 的第 ${i + 1} 分片上传成功`)
+        logger.debug(`${fileId} 的第 ${i + 1} 分片上传成功`)
       }
-
-      logger.success(`第 ${i + 1} 分片上传成功`)
     }
 
-    logger.info('所有分片上传完成，通知服务端合并文件...')
+    logger.success(`${localFilePath} 所有分片上传完成，通知服务端合并文件...`)
     // 通知后端合并文件
     const {
       data: { code }
