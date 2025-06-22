@@ -1,12 +1,12 @@
 import { stat } from 'fs/promises'
 import { basename, extname } from 'path'
-import axios from 'axios'
 import { logger } from '@main/utils/logger'
-import { getChunkMD5 } from '@main/utils/common'
+import { getChunkMD5, bufferToStream } from '@main/utils/common'
 import { sendUtil } from '@main/utils'
 import { IpcMainInvokeEvent } from 'electron'
 import { UPLOAD_FILE, UPDATE_UPLOAD_PROGRESS } from '@constants/index'
 import { mainWindow } from '@main/index'
+import axios from 'axios'
 import FormData from 'form-data'
 
 // 配置
@@ -39,8 +39,7 @@ const uploadFile = async (
       const { md5: chunkMD5, buffer } = await getChunkMD5(true, localFilePath, start, chunkSize)
 
       const formData = new FormData()
-      // formData.append('file', new Blob([buffer]), `${i}`) // 模拟文件对象
-      formData.append('file', buffer, `${i}`)
+      formData.append('file', bufferToStream(buffer!), `${i}`) // 模拟文件对象
       formData.append('chunkIndex', `${i}`)
       formData.append('chunkMD5', chunkMD5)
       formData.append('totalChunks', `${totalChunks}`)

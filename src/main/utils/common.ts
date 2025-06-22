@@ -5,6 +5,7 @@ import { sendApp } from './send'
 import { is } from '@electron-toolkit/utils'
 import { app, BrowserWindow } from 'electron'
 import { CATCH_ERROR } from '@constants/index'
+import { Readable } from 'stream'
 
 // 打包时的环境 development | production | test
 export const APP_ENV = __APP_ENV__
@@ -75,23 +76,38 @@ export const getChunkMD5 = (
   return new Promise((resolve, reject) => {
     const buffers: Buffer[] = []
     const hash = createHash('md5')
-    const stream = createReadStream(filePath, { start: offset, end: offset + size - 1 })
+    const stream = createReadStream(filePath, {
+      start: offset,
+      end: offset + size - 1 // 注意：end 是闭区间，所以要减一
+    })
 
     stream.on('data', (chunk) => {
       hash.update(chunk)
       if (flag) {
-        buffers.push(chunk as Buffer)
+        buffers.push(Buffer.from(chunk)) // 显式拷贝一份
       }
     })
 
     stream.on('end', () => {
-      resolve({ md5: hash.digest('hex'), buffer: Buffer.concat(buffers) })
+      const result: FileHashResult = {
+        md5: hash.digest('hex'),
+        buffer: flag ? Buffer.concat(buffers) : undefined
+      }
+      resolve(result)
     })
 
     stream.on('error', (err) => {
-      reject(err)
+      reject(new Error(`读取文件分片失败: ${err.message}`))
     })
   })
+}
+
+export const bufferToStream = (buffer: Buffer): Readable => {
+  const readable = new Readable()
+  readable._read = () => {} // 必须实现，但不需要做任何事
+  readable.push(buffer) // 推入数据
+  readable.push(null) // 结束流
+  return readable
 }
 
 export default {
@@ -102,5 +118,6 @@ export default {
   sleep,
   generateErrorMsg,
   getChunkMD5,
+  bufferToStream,
   APP_ENV
 }
