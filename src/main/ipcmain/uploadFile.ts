@@ -1,5 +1,5 @@
 import { stat } from 'fs/promises'
-import { basename, extname } from 'path'
+import { basename, dirname, extname, join } from 'path'
 import { logger } from '@main/utils/logger'
 import { getChunkMD5, bufferToStream } from '@main/utils/common'
 import { sendUtil } from '@main/utils'
@@ -8,6 +8,7 @@ import { UPLOAD_FILE, UPDATE_UPLOAD_PROGRESS } from '@constants/index'
 import { mainWindow } from '@main/index'
 import axios from 'axios'
 import FormData from 'form-data'
+import { unlink } from 'fs/promises'
 
 // 配置
 const CHUNK_SIZE = 1024 * 1024 * 2 // 2MB per chunk
@@ -85,6 +86,7 @@ const uploadFile = async (
     } else {
       logger.success(`校验检查文件 ${fileId} 成功`)
       result.success = true
+      unlink(localFilePath)
     }
   } catch (err) {
     logger.error(`文件上传失败:\n${err}`)
