@@ -7,6 +7,7 @@ import { sendUtil } from '@main/utils'
 import { IpcMainInvokeEvent } from 'electron'
 import { UPLOAD_FILE, UPDATE_UPLOAD_PROGRESS } from '@constants/index'
 import { mainWindow } from '@main/index'
+import FormData from 'form-data'
 
 // 配置
 const CHUNK_SIZE = 1024 * 1024 * 2 // 2MB per chunk
