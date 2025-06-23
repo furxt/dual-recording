@@ -35,10 +35,7 @@
   <div class="flex flex-col items-center">
     <div class="flex items-center justify-center">
       <el-progress
-        :style="{
-          visibility: showTransCodeProgress ? 'visible' : 'hidden',
-          width: `${videoConfig.width}px`
-        }"
+        :style="progressStyle"
         :percentage="transCodeProgress"
         :stroke-width="3"
         :color="progressConstant.colors"
@@ -287,6 +284,14 @@ const loadDevices = async () => {
     }
   })
 }
+
+// 使用 computed 创建计算属性
+const progressStyle = computed(() => {
+  return {
+    visibility: showTransCodeProgress.value ? 'visible' : 'hidden',
+    width: `${videoConfig.value.width}px`
+  }
+})
 
 onMounted(async () => {
   // 这里获取当前录制的视频分辨率，以便调整窗口大小
