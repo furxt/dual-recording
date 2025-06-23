@@ -104,7 +104,7 @@
         >
           结束
         </el-button>
-        <el-button
+        <!-- <el-button
           color="#7c3aed"
           type="primary"
           :disabled="disablePauseBtn"
@@ -121,7 +121,28 @@
           :icon="GoAhead"
         >
           继续
+        </el-button> -->
+        <el-button
+          v-if="!disablePauseBtn || disableResumeBtn"
+          color="#7c3aed"
+          type="primary"
+          :disabled="disablePauseBtn"
+          @click="pauseRecording"
+          :icon="PauseOne"
+        >
+          暂停
         </el-button>
+        <el-button
+          v-else
+          color="#7c3aed"
+          type="primary"
+          :disabled="disableResumeBtn"
+          @click="resumeRecording"
+          :icon="GoAhead"
+        >
+          继续
+        </el-button>
+
         <el-button
           color="#7c3aed"
           :disabled="disableReplayBtn"
@@ -129,8 +150,9 @@
           @click="replay"
           :icon="ReplayMusic"
         >
-          回放
+          {{ replayTextFlag ? ' 开始回放' : '停止回放' }}
         </el-button>
+
         <el-button
           type="primary"
           color="#7c3aed"
@@ -165,6 +187,7 @@ import { GoAhead, Logout, PauseOne, ReplayMusic, Setting, Upload, Video } from '
 import { useGlobalConfigStore } from '@renderer/stores'
 import { progressConstant } from '@renderer/constants'
 import type { LoadingInstance } from 'element-plus/es/components/loading/src/loading'
+import type { NotificationHandle } from 'element-plus'
 import {
   RELAUNCH,
   SAVE_CHUNK,
@@ -175,7 +198,8 @@ import {
   UPDATE_UPLOAD_PROGRESS,
   TRANSCODE_COMPLETE,
   TRANSCODE_PROGRESS,
-  CONF_WINDOW_SIZE
+  CONF_WINDOW_SIZE,
+  RECORD_LOG
 } from '@constants/index'
 import { Conf } from 'electron-conf/renderer'
 import { IpcMessageHandler, ipcRendererUtil } from '@renderer/utils'
@@ -183,6 +207,7 @@ import { IpcMessageHandler, ipcRendererUtil } from '@renderer/utils'
 const conf = new Conf()
 const showTransCodeProgress = ref(false)
 const transCodeProgress = ref(0)
+const replayTextFlag = ref(true)
 
 const changeResolution = () => {
   if (isRecording.value) {
@@ -205,13 +230,14 @@ const changeResolution = () => {
   }
 }
 
+let notification: NotificationHandle | undefined
 const transcodeComplete = () => {
   transCodeProgress.value = 100
   setTimeout(() => {
     showTransCodeProgress.value = false
     transCodeProgress.value = 0
     disableUploadBtn.value = false
-    ElNotification({
+    notification = ElNotification({
       duration: 0,
       title: '转码成功',
       message: '可以开始上传了',
@@ -233,7 +259,7 @@ const IpcMessageHandlerMap = new Map<string, (...data: any[]) => void | Promise<
     UPDATE_UPLOAD_PROGRESS,
     (index: number, total: number) => {
       console.log('更新上传进度条', index, total)
-      percentage.value = Math.floor((index / total) * 100)
+      percentage.value = index === total ? 99 : Math.floor((index / total) * 100)
     }
   ],
   [
@@ -321,6 +347,7 @@ const progressStyle = computed(() => {
 
 onUnmounted(() => {
   ipcMessageHandler.destroyed()
+  videoRef.value?.removeEventListener('ended', () => {})
 })
 
 onMounted(async () => {
@@ -472,15 +499,16 @@ const saveChunkToDB = async (blob: Blob | null, uuid: string, chunkId: number) =
 }
 
 const startRecording = async () => {
-  // if (!mediaStream || isRecording.value) return
   if (isRecording.value) return
   const result = await reloadDevice()
   if (!result) return
 
+  notification?.close()
   setTimeout(() => {
     disableStopBtn.value = false
     disablePauseBtn.value = false
   }, 1100)
+  replayTextFlag.value = true
   showControls.value = false
   disableReplayBtn.value = true
   disableUploadBtn.value = true
@@ -536,7 +564,10 @@ const startRecording = async () => {
       const { success, message, data, error } = await ipcRendererUtil.invoke(REPAIR_VIDEO, {
         uuid
       })
-      if (loading) loading.close()
+
+      loading?.close()
+      loading = undefined
+
       if (success) {
         ElMessage.success(message)
         console.log(data)
@@ -546,7 +577,8 @@ const startRecording = async () => {
         ElMessage.error(error)
       }
     } catch (err) {
-      if (loading) loading.close()
+      loading?.close()
+      loading = undefined
       console.error('视频保存失败!', err)
       ElMessage.error('视频保存失败!')
     }
@@ -602,7 +634,7 @@ const resumeRecording = () => {
   }
 }
 
-let loading: LoadingInstance
+let loading: LoadingInstance | undefined
 const stopRecording = () => {
   if (mediaRecorder && mediaRecorder.state !== 'inactive') {
     loading = ElLoading.service({
@@ -670,7 +702,13 @@ const upload = async () => {
     checkFileUrl
   })
 
-  if (loading) loading.close()
+  notification?.close()
+  notification = undefined
+  loading?.close()
+  loading = undefined
+
+  if (success) percentage.value = 100
+
   setTimeout(() => {
     showUploadProgress.value = false
     percentage.value = 0
@@ -688,12 +726,30 @@ const upload = async () => {
 
 const replay = async () => {
   if (videoRef.value) {
-    videoRef.value.src = '' // 清除之前的 src
-    videoRef.value.srcObject = null // 确保清除任何现有的媒体流
-    console.log('replay', localFilePath.value)
-    showControls.value = true
-    videoRef.value.src = `file:///${localFilePath.value}`
-    videoRef.value.play()
+    if (replayTextFlag.value) {
+      videoRef.value.src = '' // 清除之前的 src
+      videoRef.value.srcObject = null // 确保清除任何现有的媒体流
+      console.log('replay', localFilePath.value)
+      showControls.value = true
+      videoRef.value.src = `file:///${localFilePath.value}`
+      videoRef.value.play()
+      videoRef.value?.removeEventListener('ended', () => {})
+      videoRef.value?.addEventListener('ended', videoPlayedEndedEvent)
+    } else {
+      videoRef.value.pause()
+      videoRef.value.currentTime = 0
+      videoRef.value?.removeEventListener('ended', () => {})
+    }
+    replayTextFlag.value = !replayTextFlag.value
+  }
+}
+
+const videoPlayedEndedEvent = () => {
+  console.log('video played ended')
+  videoRef.value?.removeEventListener('ended', () => {})
+  replayTextFlag.value = true
+  if (videoRef.value) {
+    videoRef.value!.currentTime = 0
   }
 }
 
@@ -735,12 +791,12 @@ const reloadDevice = async (): Promise<boolean> => {
     })
 
     if (videoRef.value) {
-      videoRef.value.src = ''
       videoRef.value.srcObject = mediaStream
     }
     return true
   } catch (error) {
     console.error('获取媒体设备失败:', error)
+    ipcRendererUtil.send(RECORD_LOG, error)
     ElMessage.error('当前设备不可用, 请检查设备是否正常!')
     return false
   }

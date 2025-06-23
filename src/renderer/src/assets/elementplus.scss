@@ -24,3 +24,8 @@
 .transparent-loading .el-loading-spinner {
   display: none !important;
 }
+
+.el-button:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
