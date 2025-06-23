@@ -1,7 +1,7 @@
 import { stat } from 'fs/promises'
 import { basename, extname } from 'path'
 import { logger } from '@main/utils/logger'
-import { getChunkMD5, bufferToStream } from '@main/utils/common'
+import { bufferToStream, getFileMD5, getChunkMD5BySpark } from '@main/utils/common'
 import { sendUtil } from '@main/utils'
 import { IpcMainInvokeEvent } from 'electron'
 import { UPLOAD_FILE, UPDATE_UPLOAD_PROGRESS } from '@constants/index'
@@ -34,10 +34,16 @@ const uploadFile = async (
     logger.info(`开始上传文件: ${localFilePath}, 共 ${totalChunks} 个分片, fileId: ${fileId}`)
     for (let i = 0; i < totalChunks; i++) {
       const start = i * CHUNK_SIZE
-      const end = Math.min(fileSize - 1, start + CHUNK_SIZE - 1) // 注意结束位置是闭区间
-      const chunkSize = end - start + 1
+      const chunkSize = CHUNK_SIZE
+
       // 计算分片的 MD5
-      const { md5: chunkMD5, buffer } = await getChunkMD5(true, localFilePath, start, chunkSize)
+      const { md5: chunkMD5, buffer } = await getChunkMD5BySpark(
+        true,
+        localFilePath,
+        start,
+        chunkSize,
+        fileSize
+      )
 
       const formData = new FormData()
       formData.append('file', bufferToStream(buffer!), `${i}`) // 模拟文件对象
@@ -76,8 +82,8 @@ const uploadFile = async (
     } else {
       logger.success(`${fileId} 文件合并完成`)
     }
-    const { md5: fileMD5 } = await getChunkMD5(false, localFilePath, 0, fileSize)
-
+    const fileMD5 = await getFileMD5(localFilePath)
+    logger.debug(`文件 ${fileId} MD5: ${fileMD5}`)
     const {
       data: { code: resultCode }
     } = await axios.get(`${CHECK_URL}/${fileId}`, { params: { fileMD5 } })

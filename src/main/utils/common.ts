@@ -6,6 +6,9 @@ import { is } from '@electron-toolkit/utils'
 import { app, BrowserWindow } from 'electron'
 import { CATCH_ERROR } from '@constants/index'
 import { Readable } from 'stream'
+import { logger } from './logger'
+import { stat } from 'fs/promises'
+import SparkMD5 from 'spark-md5'
 
 // 打包时的环境 development | production | test
 export const APP_ENV = __APP_ENV__
@@ -110,6 +113,82 @@ export const bufferToStream = (buffer: Buffer): Readable => {
   return readable
 }
 
+export const getFileMD5 = (filePath: string): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const spark = new SparkMD5.ArrayBuffer()
+    const stream = createReadStream(filePath, { highWaterMark: 1024 * 1024 }) // 每次读取1MB
+
+    stream.on('data', (chunk: ArrayBuffer) => {
+      spark.append(chunk) // 注意：Buffer -> ArrayBuffer
+    })
+
+    stream.on('end', () => {
+      const hash = spark.end()
+      logger.debug(`File MD5: ${hash}`)
+      resolve(hash) // 返回 hash
+    })
+
+    stream.on('error', (err) => {
+      logger.error(`Error while reading the file: ${err.message}`)
+      reject(err)
+    })
+  })
+}
+
+/**
+ * 计算单个 chunk 的 MD5（使用 spark-md5）
+ * @param {boolean} flag 是否需要缓存 buffer
+ * @param {string} filePath 文件路径
+ * @param {number} offset 起始偏移量
+ * @param {number} size 分片大小
+ * @returns {Promise<FileHashResult>}
+ */
+export const getChunkMD5BySpark = (
+  flag: boolean,
+  filePath: string,
+  offset: number,
+  size: number,
+  fileSize: number
+): Promise<FileHashResult> => {
+  const end = Math.min(fileSize, offset + size - 1) // 注意结束位置是闭区间
+  return new Promise((resolve, reject) => {
+    const buffers: Buffer[] = []
+    const spark = new SparkMD5.ArrayBuffer()
+    const stream = createReadStream(filePath, {
+      start: offset,
+      end // 注意：end 是闭区间
+    })
+
+    stream.on('data', (chunk: ArrayBuffer) => {
+      // 累加 ArrayBuffer 到 SparkMD5
+      spark.append(chunk)
+
+      // 如果需要缓存 buffer，则拷贝一份
+      if (flag) {
+        buffers.push(Buffer.from(chunk))
+      }
+    })
+
+    stream.on('end', () => {
+      const result: FileHashResult = {
+        md5: spark.end(),
+        buffer: flag ? Buffer.concat(buffers) : undefined
+      }
+
+      resolve(result)
+    })
+
+    stream.on('error', (err) => {
+      reject(new Error(`读取文件分片失败: ${err.message}`))
+    })
+  })
+}
+
+interface FileHashResult {
+  md5: string
+  buffer?: Buffer
+}
+
 export default {
   rootDir,
   videoDir,
@@ -119,5 +198,6 @@ export default {
   generateErrorMsg,
   getChunkMD5,
   bufferToStream,
-  APP_ENV
+  APP_ENV,
+  getFileMD5
 }
