@@ -1,5 +1,5 @@
 {
-  "window.zoomLevel": 0.9,
+  "window.zoomLevel": 1.2,
   "[typescript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },

@@ -1,4 +1,5 @@
-import * as common from './common'
-import * as ipcRenderer from './ipcRenderer'
+import commonUtil from './common'
+import ipcRendererUtil from './ipcRenderer'
+import IpcMessageHandler from './ipcMessageHandler'
 
-export default { common, ipcRenderer }
+export { commonUtil, ipcRendererUtil, IpcMessageHandler }

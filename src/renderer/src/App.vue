@@ -18,7 +18,7 @@
 <script setup lang="ts">
 import { progressConstant } from './constants'
 import type { LoadingInstance } from 'element-plus/es/components/loading/src/loading'
-import utils from './utils'
+import { IpcMessageHandler, ipcRendererUtil } from './utils'
 import {
   DOWNLOAD_UPDATE,
   INSTALL_UPDATE,
@@ -33,76 +33,112 @@ import {
   CATCH_ERROR
 } from '@constants/index'
 
-const showCloseWindowMsgBox = ref(false)
+// 有新版本可以更新
+const updateAvailable = (appVersion: string) => {
+  ElMessageBox.confirm(`检测到有新版本 ${appVersion} 可用，是否下载更新？`, '更新提示', {
+    closeOnClickModal: false,
+    confirmButtonText: '确认',
+    cancelButtonText: '取消',
+    type: 'primary'
+  })
+    .then(() => {
+      ipcRendererUtil.send(DOWNLOAD_UPDATE)
+      loading = ElLoading.service({
+        lock: true,
+        background: 'rgba(250, 250, 250, 0.7)', // 白色半透明背景
+        customClass: 'transparent-loading' // 自定义类名
+      })
+      isDownloadUpdateApp.value = true
+    })
+    .catch(() => {})
+}
 
-window.electron.ipcRenderer.on(APP_PAGE, (_event, code, data) => {
-  if (code === PRIMARY_MESSAGE) {
-    console.log('常规提示消息', data)
-    ElMessage.primary(data)
-  } else if (code === UPDATE_AVAILABLE) {
-    console.log('检测到有新版本可以更新')
-    ElMessageBox.confirm(`检测到有新版本 ${data} 可用，是否下载更新？`, '更新提示', {
+const closeAppWindow = () => {
+  if (!showCloseWindowMsgBox.value) {
+    showCloseWindowMsgBox.value = true
+    ElMessageBox.confirm('确认退出吗?', '警告', {
       closeOnClickModal: false,
       confirmButtonText: '确认',
       cancelButtonText: '取消',
-      type: 'primary'
+      type: 'warning'
     })
       .then(() => {
-        utils.ipcRenderer.send(DOWNLOAD_UPDATE)
-        loading = ElLoading.service({
-          lock: true,
-          background: 'rgba(250, 250, 250, 0.7)', // 白色半透明背景
-          customClass: 'transparent-loading' // 自定义类名
-        })
-        isDownloadUpdateApp.value = true
+        ipcRendererUtil.send(WINDOW_CLOSE)
       })
       .catch(() => {})
-  } else if (code === DOWNLOAD_PROGRESS) {
-    console.log('下载更新进度条')
-    percentage.value = data
-  } else if (code === CLOSE_WINDOW) {
-    console.log('关闭窗口')
-
-    if (!showCloseWindowMsgBox.value) {
-      showCloseWindowMsgBox.value = true
-      ElMessageBox.confirm('确认退出吗?', '警告', {
-        closeOnClickModal: false,
-        confirmButtonText: '确认',
-        cancelButtonText: '取消',
-        type: 'warning'
+      .finally(() => {
+        showCloseWindowMsgBox.value = false
       })
-        .then(() => {
-          utils.ipcRenderer.send(WINDOW_CLOSE)
-          showCloseWindowMsgBox.value = false
-        })
-        .catch(() => {
-          showCloseWindowMsgBox.value = false
-        })
-    }
-  } else if (code === UPDATE_DOWNLOADED) {
-    console.log('更新下载完成')
-    setTimeout(() => {
-      if (loading) {
-        loading?.close()
-        loading = null
-      }
-      isDownloadUpdateApp.value = false
-      ElMessageBox.confirm(`下载已完成，是否立即更新？`, '更新提示', {
-        closeOnClickModal: false,
-        confirmButtonText: '确认',
-        cancelButtonText: '取消',
-        type: 'success'
-      })
-        .then(() => {
-          utils.ipcRenderer.send(INSTALL_UPDATE)
-        })
-        .catch(() => {})
-    }, 500)
-  } else if (code === CATCH_ERROR) {
-    console.log('收到node捕获的错误消息')
-    ElMessage.error(data)
   }
-})
+}
+
+const updateDownloaded = () => {
+  setTimeout(() => {
+    if (loading) {
+      loading.close()
+      loading = null
+    }
+    isDownloadUpdateApp.value = false
+    ElMessageBox.confirm(`下载已完成，是否立即更新？`, '更新提示', {
+      closeOnClickModal: false,
+      confirmButtonText: '确认',
+      cancelButtonText: '取消',
+      type: 'success'
+    })
+      .then(() => {
+        ipcRendererUtil.send(INSTALL_UPDATE)
+      })
+      .catch(() => {})
+  }, 500)
+}
+
+const IpcMessageHandlerMap = new Map<string, (...data: any[]) => void | Promise<void>>([
+  [
+    PRIMARY_MESSAGE,
+    (primaryMsg: string) => {
+      console.log('node发送过来的常规消息', primaryMsg)
+      ElMessage.primary(primaryMsg)
+    }
+  ],
+  [
+    UPDATE_AVAILABLE,
+    (appVersion: string) => {
+      console.log('检测到有新版本可以更新')
+      updateAvailable(appVersion)
+    }
+  ],
+  [
+    DOWNLOAD_PROGRESS,
+    (percentageVal: number) => {
+      console.log('更新下载进度条', percentageVal)
+      percentage.value = percentageVal
+    }
+  ],
+  [
+    CLOSE_WINDOW,
+    () => {
+      console.log('关闭窗口')
+      closeAppWindow()
+    }
+  ],
+  [
+    UPDATE_DOWNLOADED,
+    () => {
+      console.log('更新下载完成')
+      updateDownloaded()
+    }
+  ],
+  [
+    CATCH_ERROR,
+    (errorMsg: string) => {
+      console.log('收到node捕获的错误消息', errorMsg)
+      ElMessage.error(errorMsg)
+    }
+  ]
+])
+const ipcMessageHandler = new IpcMessageHandler(APP_PAGE, IpcMessageHandlerMap)
+
+const showCloseWindowMsgBox = ref(false)
 
 let loading: LoadingInstance | null
 const isDownloadUpdateApp = ref(false)
@@ -110,7 +146,11 @@ const percentage = ref(0)
 
 onMounted(async () => {
   // 检查更新
-  utils.ipcRenderer.invoke(CHECK_UPDATE)
+  ipcRendererUtil.invoke(CHECK_UPDATE)
+})
+
+onUnmounted(() => {
+  ipcMessageHandler.destroyed()
 })
 </script>
 

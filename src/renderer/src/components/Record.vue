@@ -178,55 +178,81 @@ import {
   CONF_WINDOW_SIZE
 } from '@constants/index'
 import { Conf } from 'electron-conf/renderer'
-import utils from '@renderer/utils'
+import { IpcMessageHandler, ipcRendererUtil } from '@renderer/utils'
 
 const conf = new Conf()
-
 const showTransCodeProgress = ref(false)
 const transCodeProgress = ref(0)
 
-window.electron.ipcRenderer.on(RECORD_PAGE, (_event, code, data) => {
-  if (code === CHANGE_RESOLUTION) {
-    if (isRecording.value) {
-      ElNotification({
-        title: '分辨率',
-        message: '修改成功，重启即可生效',
-        type: 'primary',
-        customClass: 'small-notification'
+const changeResolution = () => {
+  if (isRecording.value) {
+    ElNotification({
+      title: '分辨率',
+      message: '修改成功，重启即可生效',
+      type: 'primary',
+      customClass: 'small-notification'
+    })
+  } else {
+    ElMessageBox.confirm('分辨率修改成功，马上重启即可生效，确认吗?', '提醒', {
+      confirmButtonText: '确认',
+      cancelButtonText: '取消',
+      type: 'primary'
+    })
+      .then(() => {
+        ipcRendererUtil.send(RELAUNCH)
       })
-    } else {
-      ElMessageBox.confirm('分辨率修改成功，马上重启即可生效，确认吗?', '提醒', {
-        confirmButtonText: '确认',
-        cancelButtonText: '取消',
-        type: 'primary'
-      })
-        .then(() => {
-          utils.ipcRenderer.send(RELAUNCH)
-        })
-        .catch(() => {})
-    }
-  } else if (code === UPDATE_UPLOAD_PROGRESS) {
-    const { index, total } = data
-    percentage.value = Math.floor((index / total) * 100)
-  } else if (code === TRANSCODE_COMPLETE) {
-    transCodeProgress.value = 100
-    setTimeout(() => {
-      showTransCodeProgress.value = false
-      transCodeProgress.value = 0
-      disableUploadBtn.value = false
-      ElNotification({
-        duration: 0,
-        title: '转码成功',
-        message: '可以开始上传了',
-        type: 'success',
-        customClass: 'small-notification'
-      })
-    }, 500)
-  } else if (code === TRANSCODE_PROGRESS) {
-    console.log('转码进度', data)
-    transCodeProgress.value = data
+      .catch(() => {})
   }
-})
+}
+
+const transcodeComplete = () => {
+  transCodeProgress.value = 100
+  setTimeout(() => {
+    showTransCodeProgress.value = false
+    transCodeProgress.value = 0
+    disableUploadBtn.value = false
+    ElNotification({
+      duration: 0,
+      title: '转码成功',
+      message: '可以开始上传了',
+      type: 'success',
+      customClass: 'small-notification'
+    })
+  }, 500)
+}
+
+const IpcMessageHandlerMap = new Map<string, (...data: any[]) => void | Promise<void>>([
+  [
+    CHANGE_RESOLUTION,
+    () => {
+      console.log('修改录制分辨率')
+      changeResolution()
+    }
+  ],
+  [
+    UPDATE_UPLOAD_PROGRESS,
+    (index: number, total: number) => {
+      console.log('更新上传进度条', index, total)
+      percentage.value = Math.floor((index / total) * 100)
+    }
+  ],
+  [
+    TRANSCODE_COMPLETE,
+    () => {
+      console.log('转码已完成')
+      transcodeComplete()
+    }
+  ],
+  [
+    TRANSCODE_PROGRESS,
+    (transCodeProgressVal: number) => {
+      console.log('转码进度', transCodeProgressVal)
+      transCodeProgress.value = transCodeProgressVal
+    }
+  ]
+])
+
+const ipcMessageHandler = new IpcMessageHandler(RECORD_PAGE, IpcMessageHandlerMap)
 
 const globalConfigStore = useGlobalConfigStore()
 
@@ -291,6 +317,10 @@ const progressStyle = computed(() => {
     visibility: showTransCodeProgress.value ? 'visible' : 'hidden',
     width: `${videoConfig.value.width}px`
   }
+})
+
+onUnmounted(() => {
+  ipcMessageHandler.destroyed()
 })
 
 onMounted(async () => {
@@ -432,7 +462,7 @@ const drawOverlay = (timestamp: number) => {
 const saveChunkToDB = async (blob: Blob | null, uuid: string, chunkId: number) => {
   let arrayBuffer = await blob?.arrayBuffer()
 
-  await utils.ipcRenderer.invoke(SAVE_CHUNK, {
+  await ipcRendererUtil.invoke(SAVE_CHUNK, {
     buffer: arrayBuffer,
     uuid,
     chunkId
@@ -503,7 +533,7 @@ const startRecording = async () => {
       await Promise.all(pendingSaves)
       pendingSaves.length = 0
       showTransCodeProgress.value = true
-      const { success, message, data, error } = await utils.ipcRenderer.invoke(REPAIR_VIDEO, {
+      const { success, message, data, error } = await ipcRendererUtil.invoke(REPAIR_VIDEO, {
         uuid
       })
       if (loading) loading.close()
@@ -631,7 +661,7 @@ const upload = async () => {
     VITE_MERGE_CHUNK_URL: mergeChunkUrl,
     VITE_CHECK_FILE_URL: checkFileUrl
   } = import.meta.env
-  const { success } = await utils.ipcRenderer.invoke(UPLOAD_FILE, {
+  const { success } = await ipcRendererUtil.invoke(UPLOAD_FILE, {
     localFilePath: localFilePath.value,
     serverUrl,
     apiPrefix,

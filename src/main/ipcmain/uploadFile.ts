@@ -63,10 +63,7 @@ const uploadFile = async (
         logger.error(`上传 ${fileId} 的第 ${i + 1}/${totalChunks} 片失败`)
         return result
       } else {
-        sendUtil.sendRecord(mainWindow!, UPDATE_UPLOAD_PROGRESS, {
-          index: i + 1,
-          total: totalChunks
-        })
+        sendUtil.sendRecord(mainWindow!, UPDATE_UPLOAD_PROGRESS, i + 1, totalChunks)
         logger.debug(`${fileId} 的第 ${i + 1} 分片上传成功`)
       }
     }

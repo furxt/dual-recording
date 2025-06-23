@@ -18,7 +18,7 @@
 
 <script setup lang="ts">
 import { Close, Minus } from '@icon-park/vue-next'
-import utils from '@renderer/utils'
+import { ipcRendererUtil } from '@renderer/utils'
 import { WINDOW_CLOSE, WINDOW_MINIMIZE, APP_VERSION } from '@constants/index'
 
 const props = defineProps({
@@ -31,7 +31,7 @@ const props = defineProps({
 const emit = defineEmits(['update:showCloseWindowMsgBox'])
 
 const minimizeWindow = () => {
-  utils.ipcRenderer.send(WINDOW_MINIMIZE)
+  ipcRendererUtil.send(WINDOW_MINIMIZE)
 }
 
 const closeWindow = () => {
@@ -43,7 +43,7 @@ const closeWindow = () => {
       type: 'warning'
     })
       .then(() => {
-        utils.ipcRenderer.send(WINDOW_CLOSE)
+        ipcRendererUtil.send(WINDOW_CLOSE)
         emit('update:showCloseWindowMsgBox', false)
       })
       .catch(() => {
@@ -54,7 +54,7 @@ const closeWindow = () => {
 
 const version = ref('')
 onMounted(async () => {
-  version.value = await utils.ipcRenderer.invoke(APP_VERSION)
+  version.value = await ipcRendererUtil.invoke(APP_VERSION)
 })
 </script>
 
