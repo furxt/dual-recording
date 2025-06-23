@@ -759,12 +759,14 @@ const openSettingDialog = async () => {
 }
 
 const changeVideoInput = (val: string) => {
+  replayTextFlag.value = true
   const videoinputDevice = videoinputDevices.value.find((e) => e.label === val)
   globalConfigStore.config.videoinputDeviceId = videoinputDevice?.deviceId as string
   reloadDevice()
 }
 
 const changeAudioInput = (val: string) => {
+  replayTextFlag.value = true
   const audioinputDevice = audioinputDevices.value.find((e) => e.label === val)
   globalConfigStore.config.audioinputDeviceId = audioinputDevice?.deviceId as string
   reloadDevice()
