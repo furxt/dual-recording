@@ -4,7 +4,7 @@ import { localConf } from './globalConf'
 import { CONF_WINDOW_SIZE } from '@constants/index'
 import { setFfmpegHomePath } from './ffmpeg'
 import { sendApp, sendRecord } from './send'
-import { autoUpdateApp } from './autoUpdate'
+import { checkUpdate } from './autoUpdate'
 import { showWindow } from './window'
 import { PRIMARY_MESSAGE, CHANGE_RESOLUTION } from '@constants/index'
 export const createTray = (
@@ -66,7 +66,7 @@ export const createTray = (
     {
       label: '检查更新',
       click: () => {
-        autoUpdateApp(undefined, true)
+        checkUpdate(undefined, true)
       }
     },
     {

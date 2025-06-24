@@ -4,7 +4,7 @@ import { DOWNLOAD_UPDATE, INSTALL_UPDATE, CHECK_UPDATE } from '@constants/index'
 export const autoUpdateHandleHandlerArr = [
   {
     code: CHECK_UPDATE,
-    handler: autoUpdateUtil.autoUpdateApp
+    handler: autoUpdateUtil.checkUpdate
   }
 ]
 
