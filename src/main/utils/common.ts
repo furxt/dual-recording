@@ -7,7 +7,6 @@ import { app, BrowserWindow } from 'electron'
 import { CATCH_ERROR } from '@constants/index'
 import { Readable } from 'stream'
 import { logger } from './logger'
-import { stat } from 'fs/promises'
 import SparkMD5 from 'spark-md5'
 
 // 打包时的环境 development | production | test
@@ -26,13 +25,13 @@ export const windowSizeArray: WindowSizeInfo[] = [
   {
     id: '480',
     windowWidth: 655, //1250
-    windowHeight: 610,
+    windowHeight: 580,
     resolution: { width: 640, height: 480 }
   },
   {
     id: '720',
     windowWidth: 1310, // 1890
-    windowHeight: 850,
+    windowHeight: 820,
     resolution: { width: 1280, height: 720 }
   }
 ]

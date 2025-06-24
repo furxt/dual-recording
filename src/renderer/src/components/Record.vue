@@ -85,7 +85,16 @@
     <!-- 控制按钮 -->
     <div class="pt-3 w-full px-2">
       <div class="flex gap-3 items-center justify-center flex-wrap">
-        <!-- 你的按钮保持不变 -->
+        <el-button
+          type="primary"
+          :disabled="disableSettingBtn"
+          color="#7c3aed"
+          @click="openSettingDialog"
+          :icon="Setting"
+        >
+          设置
+        </el-button>
+
         <el-button
           color="#7c3aed"
           type="primary"
@@ -95,33 +104,7 @@
         >
           开始
         </el-button>
-        <el-button
-          color="#7c3aed"
-          type="primary"
-          :disabled="disableStopBtn"
-          @click="stopRecording"
-          :icon="Logout"
-        >
-          结束
-        </el-button>
-        <!-- <el-button
-          color="#7c3aed"
-          type="primary"
-          :disabled="disablePauseBtn"
-          @click="pauseRecording"
-          :icon="PauseOne"
-        >
-          暂停
-        </el-button>
-        <el-button
-          color="#7c3aed"
-          type="primary"
-          :disabled="disableResumeBtn"
-          @click="resumeRecording"
-          :icon="GoAhead"
-        >
-          继续
-        </el-button> -->
+
         <el-button
           v-if="!disablePauseBtn || disableResumeBtn"
           color="#7c3aed"
@@ -145,12 +128,12 @@
 
         <el-button
           color="#7c3aed"
-          :disabled="disableReplayBtn"
           type="primary"
-          @click="replay"
-          :icon="ReplayMusic"
+          :disabled="disableStopBtn"
+          @click="stopRecording"
+          :icon="Logout"
         >
-          {{ replayTextFlag ? ' 开始回放' : '停止回放' }}
+          结束
         </el-button>
 
         <el-button
@@ -163,17 +146,6 @@
           上传
         </el-button>
       </div>
-      <div class="flex items-center justify-center pt-3">
-        <el-button
-          type="primary"
-          :disabled="disableSettingBtn"
-          color="#7c3aed"
-          @click="openSettingDialog"
-          :icon="Setting"
-        >
-          设置
-        </el-button>
-      </div>
     </div>
   </div>
 
@@ -183,7 +155,7 @@
 <script setup lang="ts">
 import { v4 as uuidv4 } from 'uuid'
 import { dayjs } from 'element-plus'
-import { GoAhead, Logout, PauseOne, ReplayMusic, Setting, Upload, Video } from '@icon-park/vue-next'
+import { GoAhead, Logout, PauseOne, Setting, Upload, Video } from '@icon-park/vue-next'
 import { useGlobalConfigStore } from '@renderer/stores'
 import { progressConstant } from '@renderer/constants'
 import type { LoadingInstance } from 'element-plus/es/components/loading/src/loading'
@@ -285,8 +257,8 @@ const globalConfigStore = useGlobalConfigStore()
 const percentage = ref(0)
 
 // DOM 引用
-const videoRef = ref<HTMLVideoElement | null>(null)
-const canvasRef = ref<HTMLCanvasElement | null>(null)
+const videoRef = ref<HTMLVideoElement>()
+const canvasRef = ref<HTMLCanvasElement>()
 const showRed = ref(false)
 const showUploadProgress = ref(false)
 const localFilePath = ref('')
@@ -347,7 +319,6 @@ const progressStyle = computed(() => {
 
 onUnmounted(() => {
   ipcMessageHandler.destroyed()
-  videoRef.value?.removeEventListener('ended', () => {})
 })
 
 onMounted(async () => {
@@ -561,9 +532,9 @@ const startRecording = async () => {
       await Promise.all(pendingSaves)
       pendingSaves.length = 0
       showTransCodeProgress.value = true
-      const { success, message, data, error } = await ipcRendererUtil.invoke(REPAIR_VIDEO, {
+      const { success, message, data, error } = (await ipcRendererUtil.invoke(REPAIR_VIDEO, {
         uuid
-      })
+      })) as Result<string>
 
       loading?.close()
       loading = undefined
@@ -571,8 +542,14 @@ const startRecording = async () => {
       if (success) {
         ElMessage.success(message)
         console.log(data)
-        localFilePath.value = data
+        localFilePath.value = data!
         disableReplayBtn.value = false
+
+        showControls.value = true
+        videoRef.value!.src = `file:///${localFilePath.value}`
+        setTimeout(() => {
+          videoRef.value!.pause()
+        }, 500)
       } else {
         ElMessage.error(error)
       }
@@ -581,10 +558,10 @@ const startRecording = async () => {
       loading = undefined
       console.error('视频保存失败!', err)
       ElMessage.error('视频保存失败!')
+    } finally {
+      // 清理资源
+      mixedStream.getTracks().forEach((track) => track.stop())
     }
-
-    // 清理资源
-    mixedStream.getTracks().forEach((track) => track.stop())
   }
 
   mediaRecorder.start(1000 * 10)
@@ -722,35 +699,6 @@ const upload = async () => {
       disableUploadBtn.value = false
     }
   }, 500)
-}
-
-const replay = async () => {
-  if (videoRef.value) {
-    if (replayTextFlag.value) {
-      videoRef.value.src = '' // 清除之前的 src
-      videoRef.value.srcObject = null // 确保清除任何现有的媒体流
-      console.log('replay', localFilePath.value)
-      showControls.value = true
-      videoRef.value.src = `file:///${localFilePath.value}`
-      videoRef.value.play()
-      videoRef.value?.removeEventListener('ended', () => {})
-      videoRef.value?.addEventListener('ended', videoPlayedEndedEvent)
-    } else {
-      videoRef.value.pause()
-      videoRef.value.currentTime = 0
-      videoRef.value?.removeEventListener('ended', () => {})
-    }
-    replayTextFlag.value = !replayTextFlag.value
-  }
-}
-
-const videoPlayedEndedEvent = () => {
-  console.log('video played ended')
-  videoRef.value?.removeEventListener('ended', () => {})
-  replayTextFlag.value = true
-  if (videoRef.value) {
-    videoRef.value!.currentTime = 0
-  }
 }
 
 const openSettingDialog = async () => {
