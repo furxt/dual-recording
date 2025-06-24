@@ -117,8 +117,8 @@ export const getFileMD5 = (filePath: string): Promise<string> => {
     const spark = new SparkMD5.ArrayBuffer()
     const stream = createReadStream(filePath, { highWaterMark: 1024 * 1024 }) // 每次读取1MB
 
-    stream.on('data', (chunk: ArrayBuffer) => {
-      spark.append(chunk) // 注意：Buffer -> ArrayBuffer
+    stream.on('data', (chunk) => {
+      spark.append((chunk as Buffer).buffer as ArrayBuffer)
     })
 
     stream.on('end', () => {
@@ -158,9 +158,9 @@ export const getChunkMD5BySpark = (
       end // 注意：end 是闭区间
     })
 
-    stream.on('data', (chunk: ArrayBuffer) => {
+    stream.on('data', (chunk) => {
       // 累加 ArrayBuffer 到 SparkMD5
-      spark.append(chunk)
+      spark.append((chunk as Buffer).buffer as ArrayBuffer)
 
       // 如果需要缓存 buffer，则拷贝一份
       if (flag) {
