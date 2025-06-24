@@ -1,3 +1,4 @@
+const CUSTOM_PROTOCOL = 'dr'
 const DOWNLOAD_UPDATE = 'download-update'
 const INSTALL_UPDATE = 'install-update'
 const WINDOW_CLOSE = 'window-close'
@@ -26,6 +27,7 @@ const REGISTER_HANDLER = 'register-handler'
 const TRANSCODE_PROGRESS = 'transcode-progress'
 const CONF_WINDOW_SIZE = 'windowSize'
 export {
+  CUSTOM_PROTOCOL,
   DOWNLOAD_UPDATE,
   INSTALL_UPDATE,
   WINDOW_CLOSE,

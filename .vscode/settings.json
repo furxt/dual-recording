@@ -2,6 +2,7 @@
   "window.zoomLevel": 1.2,
   "explorer.fileNesting.enabled": true,
   "explorer.fileNesting.patterns": {
+    "electron.vite.config.ts": ".npmrc, electron-builder.yml",
     ".env": ".env.*",
     "tsconfig.json": "tsconfig.*.json, env.d.ts",
     "vite.config.*": "jsconfig*, vitest.config.*, cypress.config.*, playwright.config.*",

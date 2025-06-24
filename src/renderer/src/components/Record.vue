@@ -171,7 +171,8 @@ import {
   TRANSCODE_COMPLETE,
   TRANSCODE_PROGRESS,
   CONF_WINDOW_SIZE,
-  RECORD_LOG
+  RECORD_LOG,
+  CUSTOM_PROTOCOL
 } from '@constants/index'
 import { Conf } from 'electron-conf/renderer'
 import { IpcMessageHandler, ipcRendererUtil } from '@renderer/utils'
@@ -547,6 +548,7 @@ const startRecording = async () => {
 
         showControls.value = true
         videoRef.value!.src = `file:///${localFilePath.value}`
+        // videoRef.value!.src = `${CUSTOM_PROTOCOL}://video/${encodeURIComponent(localFilePath.value)}`
         setTimeout(() => {
           videoRef.value!.pause()
         }, 500)
