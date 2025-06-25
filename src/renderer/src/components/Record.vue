@@ -150,8 +150,7 @@ import {
   TRANSCODE_COMPLETE,
   TRANSCODE_PROGRESS,
   CONF_WINDOW_SIZE,
-  RECORD_LOG,
-  CUSTOM_PROTOCOL
+  RECORD_LOG
 } from '@constants/index'
 import { Conf } from 'electron-conf/renderer'
 import { IpcMessageHandler, ipcRendererUtil } from '@renderer/utils'
@@ -446,7 +445,6 @@ const saveChunkToDB = async (blob: Blob | null, uuid: string, chunkId: number) =
     chunkId
   })
   blob = null
-  arrayBuffer = new ArrayBuffer(0)
 }
 
 const startRecording = async () => {
@@ -499,9 +497,8 @@ const startRecording = async () => {
   mediaRecorder = new MediaRecorder(mixedStream, options)
 
   mediaRecorder.ondataavailable = async (event: BlobEvent) => {
-    const blob = event.data
-    if (blob.size > 0) {
-      const savePromise = saveChunkToDB(blob, uuid, chunkId++)
+    if (event.data.size > 0) {
+      const savePromise = saveChunkToDB(event.data, uuid, chunkId++)
       pendingSaves.push(savePromise)
     }
   }

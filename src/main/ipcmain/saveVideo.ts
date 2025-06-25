@@ -33,7 +33,6 @@ const saveChunk = async (
   if (!fileWriter) {
     fileWriter = new FileWriter(outputFilePath)
   }
-  // queue?.add(() => fileWriter?.append(Buffer.from(buffer), chunkId))
   queue.add(() => {
     if (!fileWriter) {
       return Promise.reject(new Error('fileWriter 未初始化'))
