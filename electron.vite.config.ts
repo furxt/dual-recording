@@ -43,10 +43,16 @@ export default defineConfig(({ mode }) => {
           '@constants': resolve('src/constants')
         }
       },
+      css: {
+        preprocessorOptions: {
+          scss: {
+            api: 'modern-compiler'
+          }
+        }
+      },
       plugins: [
         vue(),
         vueDevTools(),
-        tailwindcss(),
         AutoImport({
           imports: ['vue', 'pinia'],
           resolvers: [ElementPlusResolver()]
@@ -54,17 +60,11 @@ export default defineConfig(({ mode }) => {
         Components({
           resolvers: [ElementPlusResolver()]
         }),
-        viteCompression()
+        viteCompression(),
+        tailwindcss()
       ],
       esbuild: {
         drop: mode === 'production' ? ['console', 'debugger'] : [] // 在生产环境中移除 console debugger
-      },
-      css: {
-        preprocessorOptions: {
-          scss: {
-            api: 'modern-compiler' // or 'modern'
-          }
-        }
       },
       build: {
         rollupOptions: {

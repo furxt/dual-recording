@@ -47,7 +47,7 @@
     "eslint": "^9.29.0",
     "eslint-plugin-vue": "^10.2.0",
     "prettier": "^3.6.0",
-    "sass-embedded": "^1.89.2",
+    "sass": "^1.89.2",
     "tailwindcss": "^4.1.10",
     "typescript": "^5.8.3",
     "unplugin-auto-import": "^19.3.0",
@@ -60,6 +60,7 @@
   },
   "pnpm": {
     "onlyBuiltDependencies": [
+      "@parcel/watcher",
       "@tailwindcss/oxide",
       "core-js",
       "electron",

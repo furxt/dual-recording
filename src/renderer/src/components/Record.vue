@@ -88,26 +88,18 @@
         <el-button
           type="primary"
           :disabled="disableSettingBtn"
-          color="#7c3aed"
           @click="openSettingDialog"
           :icon="Setting"
         >
           设置
         </el-button>
 
-        <el-button
-          color="#7c3aed"
-          type="primary"
-          :disabled="disableStartBtn"
-          @click="startRecording"
-          :icon="Video"
-        >
+        <el-button type="primary" :disabled="disableStartBtn" @click="startRecording" :icon="Video">
           开始
         </el-button>
 
         <el-button
           v-if="!disablePauseBtn || disableResumeBtn"
-          color="#7c3aed"
           type="primary"
           :disabled="disablePauseBtn"
           @click="pauseRecording"
@@ -117,7 +109,6 @@
         </el-button>
         <el-button
           v-else
-          color="#7c3aed"
           type="primary"
           :disabled="disableResumeBtn"
           @click="resumeRecording"
@@ -126,23 +117,11 @@
           继续
         </el-button>
 
-        <el-button
-          color="#7c3aed"
-          type="primary"
-          :disabled="disableStopBtn"
-          @click="stopRecording"
-          :icon="Logout"
-        >
+        <el-button type="primary" :disabled="disableStopBtn" @click="stopRecording" :icon="Logout">
           结束
         </el-button>
 
-        <el-button
-          type="primary"
-          color="#7c3aed"
-          :disabled="disableUploadBtn"
-          @click="upload"
-          :icon="Upload"
-        >
+        <el-button type="primary" :disabled="disableUploadBtn" @click="upload" :icon="Upload">
           上传
         </el-button>
       </div>
