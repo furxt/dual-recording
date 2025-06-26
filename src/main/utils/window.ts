@@ -34,6 +34,7 @@ export const createMainWindow = async (icon: NativeImage | string): Promise<Brow
   const { windowHeight, windowWidth } = localConf.get(CONF_WINDOW_SIZE) as WindowSizeInfo
   mainWindow.setContentSize(windowWidth, windowHeight)
   mainWindow.center()
+
   // 检查 ffmpegHomePath
   await checkFfmpegHomePath()
 

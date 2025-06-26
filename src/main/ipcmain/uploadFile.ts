@@ -1,14 +1,14 @@
 import { stat } from 'fs/promises'
 import { basename, extname } from 'path'
 import { logger } from '@main/utils/logger'
-import { bufferToStream, getFileMD5, getChunkMD5BySpark } from '@main/utils/common'
+import { getFileMD5, getChunkMD5BySpark, bufferToStream } from '@main/utils/common'
 import { sendUtil } from '@main/utils'
 import { IpcMainInvokeEvent } from 'electron'
 import { UPLOAD_FILE, UPDATE_UPLOAD_PROGRESS } from '@constants/index'
 import { mainWindow } from '@main/index'
+import { unlink } from 'fs/promises'
 import axios from 'axios'
 import FormData from 'form-data'
-import { unlink } from 'fs/promises'
 
 // 配置
 const CHUNK_SIZE = 1024 * 1024 * 2 // 2MB per chunk

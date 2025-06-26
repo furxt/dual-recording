@@ -1,6 +1,5 @@
-@import './base.css';
-@import './elementplus.scss';
 @import 'tailwindcss';
+@import './element/override.scss';
 
 html,
 body {

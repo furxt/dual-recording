@@ -5,8 +5,9 @@ directories:
 files:
   - '!**/.vscode/*'
   - '!src/*'
+  - '!videos/*'
   - '!electron.vite.config.{js,ts,mjs,cjs}'
-  - '!{.eslintcache,eslint.config.mjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
+  - '!{.eslintcache,eslint.config.mjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md,tsconfig*.json}'
   - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
 asarUnpack:
   - resources/**
@@ -16,9 +17,9 @@ win:
     - nsis
   executableName: dual-recording
   icon: build/icon.ico
-  publish:
-    provider: generic
-    url: http://localhost:8099/packages/win32/
+  # publish:
+  #   provider: generic
+  #   url: http://localhost:8099/packages/win32/
 nsis:
   oneClick: false
   perMachine: false

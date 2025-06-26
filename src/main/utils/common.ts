@@ -1,6 +1,5 @@
 import { join } from 'path'
 import { createReadStream } from 'fs'
-import { createHash } from 'crypto'
 import { sendApp } from './send'
 import { is } from '@electron-toolkit/utils'
 import { app, BrowserWindow } from 'electron'
@@ -62,56 +61,6 @@ ${error.stack || '(无堆栈信息)'}
 `
 }
 
-/**
- * 计算单个 chunk 的 MD5
- * @param {string} filePath
- * @param {number} offset
- * @param {number} size
- * @returns {Promise<string>}
- */
-export const getChunkMD5 = (
-  flag: boolean,
-  filePath: string,
-  offset: number,
-  size: number
-): Promise<FileHashResult> => {
-  return new Promise((resolve, reject) => {
-    const buffers: Buffer[] = []
-    const hash = createHash('md5')
-    const stream = createReadStream(filePath, {
-      start: offset,
-      end: offset + size - 1 // 注意：end 是闭区间，所以要减一
-    })
-
-    stream.on('data', (chunk) => {
-      hash.update(chunk)
-      if (flag) {
-        buffers.push(Buffer.from(chunk)) // 显式拷贝一份
-      }
-    })
-
-    stream.on('end', () => {
-      const result: FileHashResult = {
-        md5: hash.digest('hex'),
-        buffer: flag ? Buffer.concat(buffers) : undefined
-      }
-      resolve(result)
-    })
-
-    stream.on('error', (err) => {
-      reject(new Error(`读取文件分片失败: ${err.message}`))
-    })
-  })
-}
-
-export const bufferToStream = (buffer: Buffer): Readable => {
-  const readable = new Readable()
-  readable._read = () => {} // 必须实现，但不需要做任何事
-  readable.push(buffer) // 推入数据
-  readable.push(null) // 结束流
-  return readable
-}
-
 export const getFileMD5 = (filePath: string): Promise<string> => {
   return new Promise((resolve, reject) => {
     const spark = new SparkMD5.ArrayBuffer()
@@ -161,7 +110,6 @@ export const getChunkMD5BySpark = (
     stream.on('data', (chunk) => {
       // 累加 ArrayBuffer 到 SparkMD5
       spark.append((chunk as Buffer).buffer as ArrayBuffer)
-
       // 如果需要缓存 buffer，则拷贝一份
       if (flag) {
         buffers.push(Buffer.from(chunk))
@@ -188,6 +136,19 @@ interface FileHashResult {
   buffer?: Buffer
 }
 
+export const bufferToStream = (buffer: Buffer): Readable => {
+  const readable = new Readable()
+  readable._read = () => {} // 必须实现，但不需要做任何事
+  readable.push(buffer) // 推入数据
+  readable.push(null) // 结束流
+  return readable
+}
+
+interface FileHashResult {
+  md5: string
+  buffer?: Buffer
+}
+
 export default {
   rootDir,
   videoDir,
@@ -195,7 +156,6 @@ export default {
   sendError,
   sleep,
   generateErrorMsg,
-  getChunkMD5,
   bufferToStream,
   APP_ENV,
   getFileMD5

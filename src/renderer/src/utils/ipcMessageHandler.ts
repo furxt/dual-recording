@@ -10,7 +10,7 @@ class IpcMessageHandler {
   init(): void {
     window.electron.ipcRenderer.on(this.pageCode, (_event, code, ...data) => {
       if (this.handlerMap.has(code)) {
-        this.handlerMap.get(code)?.(...data)
+        this.handlerMap.get(code)!(...data)
       } else {
         console.log(`${this.pageCode} 没有 ${code} 的handler`)
       }

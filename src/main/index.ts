@@ -2,15 +2,13 @@ import { app, BrowserWindow, dialog, Menu } from 'electron'
 import { electronApp, optimizer, is, platform } from '@electron-toolkit/utils'
 import { commonUtil, windowUtil, trayUtil } from './utils'
 import { logger } from './utils/logger'
+
 import icon from '../../resources/icon.png?asset'
 import windowsTray from '../../resources/windowsTray.png?asset'
 import './ipcmain'
 
 if (!is.dev) Menu.setApplicationMenu(null)
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
 export let mainWindow: BrowserWindow | null = null
 
 // 主进程全局异常捕获

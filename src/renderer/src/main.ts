@@ -2,7 +2,7 @@ import ElementPlus from 'element-plus'
 import store from './stores'
 import { createApp } from 'vue'
 import App from './App.vue'
-import './assets/main.css'
+import './styles/index.css'
 
 const app = createApp(App)
 app.use(store)

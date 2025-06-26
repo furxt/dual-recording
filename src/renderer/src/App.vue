@@ -146,7 +146,19 @@ const percentage = ref(0)
 
 onMounted(async () => {
   // 检查更新
-  ipcRendererUtil.invoke(CHECK_UPDATE)
+  const {
+    VITE_WIN_APP_UPDATE_URL,
+    VITE_LINUX_APP_UPDATE_URL,
+    VITE_MAC_APP_UPDATE_URL,
+    VITE_APP_UPDATE_SERVER
+  } = import.meta.env
+  ipcRendererUtil.invoke(
+    CHECK_UPDATE,
+    VITE_APP_UPDATE_SERVER,
+    VITE_WIN_APP_UPDATE_URL,
+    VITE_LINUX_APP_UPDATE_URL,
+    VITE_MAC_APP_UPDATE_URL
+  )
 })
 
 onUnmounted(() => {
@@ -157,5 +169,8 @@ onUnmounted(() => {
 <style lang="scss" scoped>
 .app {
   background: linear - gradient(to top right, #f78ba3, #4a2e60);
+  background:
+    linear-gradient(to top left, #fff, #79bbff), linear-gradient(to bottom right, #fae9ed, #ffa5ba);
+  background-blend-mode: multiply; /* 混合模式，让渐变叠加 */
 }
 </style>
