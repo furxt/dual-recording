@@ -4,9 +4,11 @@ import { localConf } from './globalConf'
 import { CONF_WINDOW_SIZE } from '@constants/index'
 import { setFfmpegHomePath } from './ffmpeg'
 import { sendApp, sendRecord } from './send'
-import { checkUpdate } from './autoUpdate'
+import { generalCheckUpdate } from './autoUpdate'
 import { showWindow } from './window'
 import { PRIMARY_MESSAGE, CHANGE_RESOLUTION } from '@constants/index'
+
+let contextMenu: Menu
 export const createTray = (
   icon: NativeImage | string,
   mainWindow: Electron.BrowserWindow
@@ -14,7 +16,7 @@ export const createTray = (
   // const tray = new Tray(path.join(app.getAppPath(), 'resources', 'windowsTray.png')) // 替换为你的图标路径
   const tray = new Tray(icon) // 替换为你的图标路径
 
-  const contextMenu = Menu.buildFromTemplate([
+  contextMenu = Menu.buildFromTemplate([
     {
       label: '配置ffmpeg',
       click: async () => {
@@ -64,9 +66,11 @@ export const createTray = (
     },
     { type: 'separator' },
     {
+      id: 'checkAppUpdate',
       label: '检查更新',
+      enabled: false,
       click: () => {
-        checkUpdate(undefined, true)
+        generalCheckUpdate(true)
       }
     },
     {
@@ -84,6 +88,11 @@ export const createTray = (
   })
 }
 
+export const activateCheckAppUpdateMenu = () => {
+  contextMenu.getMenuItemById('checkAppUpdate')!.enabled = true
+}
+
 export default {
-  createTray
+  createTray,
+  activateCheckAppUpdateMenu
 }

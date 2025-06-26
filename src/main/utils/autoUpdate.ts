@@ -10,6 +10,8 @@ import {
   PRIMARY_MESSAGE
 } from '@constants/index'
 import { IpcMainInvokeEvent } from 'electron'
+import { platform } from '@electron-toolkit/utils'
+import { activateCheckAppUpdateMenu } from './tray'
 
 // 每次启动自动更新检查更新版本
 autoUpdater.logger = logger
@@ -71,10 +73,7 @@ export const installUpdate = (): void => {
   autoUpdater.quitAndInstall()
 }
 
-/**
- * 自动更新的逻辑
- */
-export const checkUpdate = (_event?: IpcMainInvokeEvent, needWarn?: boolean): void => {
+export const generalCheckUpdate = (needWarn: boolean): void => {
   autoUpdater
     .checkForUpdates()
     .then(() => {
@@ -94,8 +93,31 @@ export const checkUpdate = (_event?: IpcMainInvokeEvent, needWarn?: boolean): vo
     })
 }
 
+/**
+ * 自动更新的逻辑
+ */
+export const checkUpdate = (
+  _event: IpcMainInvokeEvent,
+  appUpdateServer: string,
+  winUpdateUrl: string,
+  linuxUpdateUrl: string,
+  macUpdateUrl: string
+): void => {
+  // 设置远程更新地址, 根据操作系统平台适配不同的更新地址
+  if (platform.isWindows) {
+    autoUpdater.setFeedURL(`${appUpdateServer}${winUpdateUrl}`)
+  } else if (platform.isLinux) {
+    autoUpdater.setFeedURL(`${appUpdateServer}${linuxUpdateUrl}`)
+  } else if (platform.isMacOS) {
+    autoUpdater.setFeedURL(`${appUpdateServer}${macUpdateUrl}`)
+  }
+  activateCheckAppUpdateMenu()
+  generalCheckUpdate(false)
+}
+
 export default {
   checkUpdate,
   downloadUpdate,
-  installUpdate
+  installUpdate,
+  generalCheckUpdate
 }

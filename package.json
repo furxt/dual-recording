@@ -1,6 +1,6 @@
 {
   "name": "dual-recording",
-  "version": "4.7.2",
+  "version": "4.7.3",
   "description": "录音录像",
   "main": "./out/main/index.js",
   "author": "liyi",
