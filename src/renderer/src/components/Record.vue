@@ -436,15 +436,14 @@ const drawOverlay = (timestamp: number) => {
 }
 
 // 保存 chunk 到 本地文件夹
-const saveChunkToDB = async (blob: Blob | null, uuid: string, chunkId: number) => {
-  let arrayBuffer = await blob?.arrayBuffer()
-
+const saveChunkToDB = async (blob: Blob, uuid: string, chunkId: number) => {
+  let arrayBuffer: ArrayBuffer | undefined = await blob.arrayBuffer()
   await ipcRendererUtil.invoke(SAVE_CHUNK, {
     buffer: arrayBuffer,
     uuid,
     chunkId
   })
-  blob = null
+  arrayBuffer = undefined
 }
 
 const startRecording = async () => {
@@ -542,7 +541,7 @@ const startRecording = async () => {
     }
   }
 
-  mediaRecorder.start(1000 * 10)
+  mediaRecorder.start(1000 * 30)
   startDrawLoop()
 }
 

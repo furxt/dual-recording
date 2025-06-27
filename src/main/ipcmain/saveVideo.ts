@@ -10,7 +10,7 @@ import { mainWindow } from '@main/index'
 import { SAVE_CHUNK, REPAIR_VIDEO, TRANSCODE_COMPLETE, TRANSCODE_PROGRESS } from '@constants/index'
 import PQueue from 'p-queue'
 
-let fileWriter: FileWriter | null
+let fileWriter: FileWriter | undefined
 
 // @ts-expect-error 因为项目打包方式的问题，这里我们使用默认导出，但p-queue又不支持commonjs，所以这一行忽略 el-lint 检查错误
 const queue: PQueue = new PQueue.default({ concurrency: 1 }) // 串行队列
@@ -55,7 +55,7 @@ const repairVideo = async (_event: IpcMainInvokeEvent, { uuid }): Promise<Result
     // 等待所有分片写完
     await queue.onIdle()
     fileWriter?.close().then(() => {
-      fileWriter = null
+      fileWriter = undefined
     })
     logger.success(`录像结束, ${totalFragmentFile} 文件保存成功`)
 
