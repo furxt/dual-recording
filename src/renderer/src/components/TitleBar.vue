@@ -38,6 +38,7 @@ const closeWindow = () => {
   if (!props.showCloseWindowMsgBox) {
     emit('update:showCloseWindowMsgBox', true)
     ElMessageBox.confirm('确认退出吗?', '警告', {
+      closeOnClickModal: false,
       confirmButtonText: '确认',
       cancelButtonText: '取消',
       type: 'warning'

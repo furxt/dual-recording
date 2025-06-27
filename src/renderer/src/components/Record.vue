@@ -170,6 +170,7 @@ const changeResolution = () => {
     })
   } else {
     ElMessageBox.confirm('分辨率修改成功，马上重启即可生效，确认吗?', '提醒', {
+      closeOnClickModal: false,
       confirmButtonText: '确认',
       cancelButtonText: '取消',
       type: 'primary'

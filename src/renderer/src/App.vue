@@ -168,7 +168,6 @@ onUnmounted(() => {
 
 <style lang="scss" scoped>
 .app {
-  background: linear - gradient(to top right, #f78ba3, #4a2e60);
   background:
     linear-gradient(to top left, #fff, #79bbff), linear-gradient(to bottom right, #fae9ed, #ffa5ba);
   background-blend-mode: multiply; /* 混合模式，让渐变叠加 */
