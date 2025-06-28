@@ -1,5 +1,5 @@
 import { resolve } from 'path'
-import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
+import { bytecodePlugin, defineConfig, externalizeDepsPlugin } from 'electron-vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 import vue from '@vitejs/plugin-vue'
 import tailwindcss from '@tailwindcss/vite'
@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => {
   console.log('mode', mode)
   return {
     main: {
-      plugins: [externalizeDepsPlugin()],
+      plugins: [externalizeDepsPlugin(), bytecodePlugin()],
       define: {
         __APP_ENV__: JSON.stringify(mode)
       },
@@ -34,11 +34,12 @@ export default defineConfig(({ mode }) => {
       }
     },
     preload: {
-      plugins: [externalizeDepsPlugin()]
+      plugins: [externalizeDepsPlugin(), bytecodePlugin()]
     },
     renderer: {
       resolve: {
         alias: {
+          '~@renderer': resolve('src/renderer/src'),
           '@renderer': resolve('src/renderer/src'),
           '@constants': resolve('src/constants')
         }
@@ -46,7 +47,7 @@ export default defineConfig(({ mode }) => {
       css: {
         preprocessorOptions: {
           scss: {
-            api: 'modern-compiler'
+            additionalData: `@use "~@renderer/styles/element/variables.scss" as *;`
           }
         }
       },
@@ -58,7 +59,7 @@ export default defineConfig(({ mode }) => {
           resolvers: [ElementPlusResolver()]
         }),
         Components({
-          resolvers: [ElementPlusResolver()]
+          resolvers: [ElementPlusResolver({ importStyle: 'sass' })]
         }),
         viteCompression(),
         tailwindcss()
@@ -69,6 +70,8 @@ export default defineConfig(({ mode }) => {
       build: {
         rollupOptions: {
           output: {
+            format: 'esm', // 👈 强制使用 ESM 格式，提高 Sass 兼容性
+            exports: 'named',
             chunkFileNames: 'assets/js/[name]-[hash].js',
             // 自定义输出目录和文件名
             entryFileNames: 'assets/js/[name]-[hash].js',

@@ -166,7 +166,7 @@ onUnmounted(() => {
 })
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 .app {
   background:
     linear-gradient(to top left, #fff, #79bbff), linear-gradient(to bottom right, #fae9ed, #ffa5ba);

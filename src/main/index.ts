@@ -2,7 +2,6 @@ import { app, BrowserWindow, dialog, Menu } from 'electron'
 import { electronApp, optimizer, is, platform } from '@electron-toolkit/utils'
 import { commonUtil, windowUtil, trayUtil } from './utils'
 import { logger } from './utils/logger'
-
 import icon from '../../resources/icon.png?asset'
 import windowsTray from '../../resources/windowsTray.png?asset'
 import './ipcmain'
