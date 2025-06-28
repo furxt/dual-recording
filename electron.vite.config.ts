@@ -1,5 +1,5 @@
 import { resolve } from 'path'
-import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
+import { defineConfig, ElectronViteConfig, externalizeDepsPlugin } from 'electron-vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 import vue from '@vitejs/plugin-vue'
 import tailwindcss from '@tailwindcss/vite'
@@ -8,7 +8,7 @@ import Components from 'unplugin-vue-components/vite'
 import viteCompression from 'vite-plugin-compression'
 import vueDevTools from 'vite-plugin-vue-devtools'
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ mode }): ElectronViteConfig => {
   console.log('mode', mode)
   return {
     main: {
@@ -43,13 +43,13 @@ export default defineConfig(({ mode }) => {
           '@constants': resolve('src/constants')
         }
       },
-      css: {
-        preprocessorOptions: {
-          scss: {
-            api: 'modern-compiler'
-          }
-        }
-      },
+      // css: {
+      //   preprocessorOptions: {
+      //     scss: {
+      //       api: 'modern-compiler'
+      //     }
+      //   }
+      // },
       plugins: [
         vue(),
         vueDevTools(),
