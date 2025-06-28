@@ -1,8 +1,8 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  readonly MAIN_VITE_SOME_KEY: string
-  // more env variables...
+  readonly RENDERER_VITE_VIDEO_INPUT: string
+  readonly RENDERER_VITE_AUDIO_INPUT: string
 }
 
 interface ImportMeta {

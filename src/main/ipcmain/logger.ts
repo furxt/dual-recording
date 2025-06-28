@@ -1,6 +1,6 @@
 import { IpcMainInvokeEvent } from 'electron'
 import { logger } from '@main/utils/logger'
-import { RECORD_LOG } from '@constants/index'
+import { RECORD_LOG } from '@common/constants'
 
 const recordLog = (
   _event: IpcMainInvokeEvent,

@@ -1,12 +1,11 @@
 import { app, Tray, Menu, NativeImage } from 'electron'
 import { windowSizeArray } from './common'
 import { localConf } from './globalConf'
-import { CONF_WINDOW_SIZE } from '@constants/index'
 import { setFfmpegHomePath } from './ffmpeg'
 import { sendApp, sendRecord } from './send'
 import { generalCheckUpdate } from './autoUpdate'
 import { showWindow } from './window'
-import { PRIMARY_MESSAGE, CHANGE_RESOLUTION } from '@constants/index'
+import { PRIMARY_MESSAGE, CHANGE_RESOLUTION, CONF_WINDOW_SIZE } from '@common/constants'
 
 let contextMenu: Menu
 export const createTray = (
@@ -68,7 +67,6 @@ export const createTray = (
     {
       id: 'checkAppUpdate',
       label: '检查更新',
-      enabled: false,
       click: () => {
         generalCheckUpdate(true)
       }
@@ -88,11 +86,6 @@ export const createTray = (
   })
 }
 
-export const activateCheckAppUpdateMenu = () => {
-  contextMenu.getMenuItemById('checkAppUpdate')!.enabled = true
-}
-
 export default {
-  createTray,
-  activateCheckAppUpdateMenu
+  createTray
 }

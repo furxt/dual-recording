@@ -2,9 +2,14 @@ import { app } from 'electron'
 import { is } from '@electron-toolkit/utils'
 import { mainWindow } from '@main/index'
 import { localConf } from '@main/utils/globalConf'
-import { CONF_WINDOW_SIZE } from '@constants/index'
 import { logger } from '@main/utils/logger'
-import { WINDOW_CLOSE, WINDOW_MINIMIZE, RELAUNCH, APP_VERSION } from '@constants/index'
+import {
+  WINDOW_CLOSE,
+  WINDOW_MINIMIZE,
+  RELAUNCH,
+  APP_VERSION,
+  CONF_WINDOW_SIZE
+} from '@common/constants'
 
 const windowClose = (): void => {
   // 移除监听器避免循环

@@ -3,7 +3,7 @@
   "include": [
     "src/types/**/*",
     "src/renderer/src/env.d.ts",
-    "src/constants/**/*",
+    "src/common/**/*",
     "src/renderer/src/**/*",
     "src/renderer/src/**/*.vue",
     "src/preload/*.d.ts",
@@ -17,8 +17,8 @@
       "@renderer/*": [
         "src/renderer/src/*"
       ],
-      "@constants/*": [
-        "src/constants/*"
+      "@common/*": [
+        "src/common/*"
       ]
     }
   }

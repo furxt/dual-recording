@@ -1,4 +1,4 @@
-import { CUSTOM_PROTOCOL } from '@constants/index'
+import { CUSTOM_PROTOCOL } from '@common/constants'
 import { protocol } from 'electron'
 import { createReadStream, existsSync } from 'fs'
 

@@ -19,7 +19,7 @@
 <script setup lang="ts">
 import { Close, Minus } from '@icon-park/vue-next'
 import { ipcRendererUtil } from '@renderer/utils'
-import { WINDOW_CLOSE, WINDOW_MINIMIZE, APP_VERSION } from '@constants/index'
+import { WINDOW_CLOSE, WINDOW_MINIMIZE, APP_VERSION } from '@common/constants'
 
 const props = defineProps({
   showCloseWindowMsgBox: {

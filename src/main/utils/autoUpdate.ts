@@ -1,17 +1,18 @@
 import { autoUpdater } from 'electron-updater'
 import { sendApp } from './send'
 import { logger } from './logger'
-import { APP_ENV, generateErrorMsg, sendError } from './common'
+import { envUtil } from '@common/utils'
+
+import { generateErrorMsg, sendError } from './common'
 import { mainWindow } from '@main/index'
 import {
   UPDATE_AVAILABLE,
   DOWNLOAD_PROGRESS,
   UPDATE_DOWNLOADED,
   PRIMARY_MESSAGE
-} from '@constants/index'
+} from '@common/constants'
 import { IpcMainInvokeEvent } from 'electron'
 import { platform } from '@electron-toolkit/utils'
-import { activateCheckAppUpdateMenu } from './tray'
 
 // 每次启动自动更新检查更新版本
 autoUpdater.logger = logger
@@ -20,11 +21,18 @@ autoUpdater.disableWebInstaller = false
 autoUpdater.autoDownload = false
 
 // 设置远程更新地址
-if (APP_ENV === 'production') {
-  autoUpdater.setFeedURL('http://localhost:8099/packages/win32/')
-  // 如果有必要你还可用根据操作系统平台适配不同的更新地址
-} else if (APP_ENV === 'test') {
-  autoUpdater.setFeedURL('http://localhost:8099/packages/win32/')
+if (platform.isWindows) {
+  autoUpdater.setFeedURL(
+    `${envUtil.MAIN_VITE_APP_UPDATE_SERVER}${envUtil.MAIN_VITE_WIN_APP_UPDATE_URL}`
+  )
+} else if (platform.isLinux) {
+  autoUpdater.setFeedURL(
+    `${envUtil.MAIN_VITE_APP_UPDATE_SERVER}${envUtil.MAIN_VITE_LINUX_APP_UPDATE_URL}`
+  )
+} else if (platform.isMacOS) {
+  autoUpdater.setFeedURL(
+    `${envUtil.MAIN_VITE_APP_UPDATE_SERVER}${envUtil.MAIN_VITE_MAC_APP_UPDATE_URL}`
+  )
 }
 
 let isUpdateAvailable = false
@@ -96,22 +104,7 @@ export const generalCheckUpdate = (needWarn: boolean): void => {
 /**
  * 自动更新的逻辑
  */
-export const checkUpdate = (
-  _event: IpcMainInvokeEvent,
-  appUpdateServer: string,
-  winUpdateUrl: string,
-  linuxUpdateUrl: string,
-  macUpdateUrl: string
-): void => {
-  // 设置远程更新地址, 根据操作系统平台适配不同的更新地址
-  if (platform.isWindows) {
-    autoUpdater.setFeedURL(`${appUpdateServer}${winUpdateUrl}`)
-  } else if (platform.isLinux) {
-    autoUpdater.setFeedURL(`${appUpdateServer}${linuxUpdateUrl}`)
-  } else if (platform.isMacOS) {
-    autoUpdater.setFeedURL(`${appUpdateServer}${macUpdateUrl}`)
-  }
-  activateCheckAppUpdateMenu()
+export const checkUpdate = (_event: IpcMainInvokeEvent): void => {
   generalCheckUpdate(false)
 }
 

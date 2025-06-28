@@ -151,9 +151,10 @@ import {
   TRANSCODE_PROGRESS,
   CONF_WINDOW_SIZE,
   RECORD_LOG
-} from '@constants/index'
+} from '@common/constants'
 import { Conf } from 'electron-conf/renderer'
 import { IpcMessageHandler, ipcRendererUtil } from '@renderer/utils'
+import { envUtil } from '@common/utils'
 
 const conf = new Conf()
 const showTransCodeProgress = ref(false)
@@ -314,12 +315,10 @@ onMounted(async () => {
 
   // 如果store里面没有视频设备和音频设备信息, 就去配置文件读取
   if (!globalConfigStore.config.videoinputDeviceId) {
-    const { VITE_VIDEO_INPUT } = import.meta.env
-    globalConfigStore.config.videoinputDeviceId = VITE_VIDEO_INPUT
+    globalConfigStore.config.videoinputDeviceId = envUtil.RENDERER_VITE_VIDEO_INPUT
   }
   if (!globalConfigStore.config.audioinputDeviceId) {
-    const { VITE_AUDIO_INPUT } = import.meta.env
-    globalConfigStore.config.audioinputDeviceId = VITE_AUDIO_INPUT
+    globalConfigStore.config.audioinputDeviceId = envUtil.RENDERER_VITE_AUDIO_INPUT
   }
 
   await loadDevices()
@@ -331,6 +330,7 @@ onMounted(async () => {
 
   // 防止设备已经被拔出, 就清空掉原来的设备信息
   if (globalConfigStore.config.videoinputDeviceId) {
+    console.log('videoinputDeviceId', globalConfigStore.config.videoinputDeviceId)
     const videoinputDevice = videoinputDevices.value.find(
       (e) => e.deviceId === globalConfigStore.config.videoinputDeviceId
     )
@@ -642,21 +642,7 @@ const upload = async () => {
     background: 'rgba(0, 0, 0, 0.2)', // 黑色半透明背景
     customClass: 'transparent-loading' // 自定义类名
   })
-  const {
-    VITE_SEVER_URL: serverUrl,
-    VITE_API_PREFIX: apiPrefix,
-    VITE_SAVE_CHUNK_URL: saveChunkUrl,
-    VITE_MERGE_CHUNK_URL: mergeChunkUrl,
-    VITE_CHECK_FILE_URL: checkFileUrl
-  } = import.meta.env
-  const { success } = await ipcRendererUtil.invoke(UPLOAD_FILE, {
-    localFilePath: localFilePath.value,
-    serverUrl,
-    apiPrefix,
-    saveChunkUrl,
-    mergeChunkUrl,
-    checkFileUrl
-  })
+  const { success } = await ipcRendererUtil.invoke(UPLOAD_FILE, localFilePath.value)
 
   notification?.close()
   notification = undefined

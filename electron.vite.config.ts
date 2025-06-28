@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => {
   console.log('mode', mode)
   return {
     main: {
-      plugins: [externalizeDepsPlugin(), bytecodePlugin()],
+      plugins: [externalizeDepsPlugin(), mode === 'development' ? bytecodePlugin() : undefined],
       define: {
         __APP_ENV__: JSON.stringify(mode)
       },
@@ -29,25 +29,24 @@ export default defineConfig(({ mode }) => {
       resolve: {
         alias: {
           '@main': resolve('src/main'),
-          '@constants': resolve('src/constants')
+          '@common': resolve('src/common')
         }
       }
     },
     preload: {
-      plugins: [externalizeDepsPlugin(), bytecodePlugin()]
+      plugins: [externalizeDepsPlugin(), mode === 'development' ? bytecodePlugin() : undefined]
     },
     renderer: {
       resolve: {
         alias: {
-          '~@renderer': resolve('src/renderer/src'),
-          '@renderer': resolve('src/renderer/src'),
-          '@constants': resolve('src/constants')
+          '@common': resolve('src/common'),
+          '@renderer': resolve('src/renderer/src')
         }
       },
       css: {
         preprocessorOptions: {
           scss: {
-            additionalData: `@use "~@renderer/styles/element/variables.scss" as *;`
+            additionalData: `@use "@renderer/styles/element/variables.scss" as *;`
           }
         }
       },

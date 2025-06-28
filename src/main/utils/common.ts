@@ -3,7 +3,7 @@ import { createReadStream } from 'fs'
 import { sendApp } from './send'
 import { is } from '@electron-toolkit/utils'
 import { app, BrowserWindow } from 'electron'
-import { CATCH_ERROR } from '@constants/index'
+import { CATCH_ERROR } from '@common/constants'
 import { logger } from './logger'
 import SparkMD5 from 'spark-md5'
 

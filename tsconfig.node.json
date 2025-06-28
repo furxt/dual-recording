@@ -5,11 +5,11 @@
     "src/main/**/*",
     "src/types/**/*",
     "src/preload/**/*",
-    "src/constants/**/*"
+    "src/common/**/*"
   ],
   "compilerOptions": {
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
+    "module": "esnext",
+    "moduleResolution": "bundler",
     "esModuleInterop": true, // 允许混合 CommonJS/ESM 导入
     "composite": true,
     "types": [
@@ -20,8 +20,8 @@
       "@main/*": [
         "src/main/*"
       ],
-      "@constants/*": [
-        "src/constants/*"
+      "@common/*": [
+        "src/common/*"
       ]
     }
   }

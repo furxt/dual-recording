@@ -7,7 +7,7 @@ import { getFfmpegPath, runFFmpegTranscode } from '@main/utils/ffmpeg'
 import { FileWriter, sendUtil } from '@main/utils'
 import { IpcMainInvokeEvent } from 'electron'
 import { mainWindow } from '@main/index'
-import { SAVE_CHUNK, REPAIR_VIDEO, TRANSCODE_COMPLETE, TRANSCODE_PROGRESS } from '@constants/index'
+import { SAVE_CHUNK, REPAIR_VIDEO, TRANSCODE_COMPLETE, TRANSCODE_PROGRESS } from '@common/constants'
 import PQueue from 'p-queue'
 
 let fileWriter: FileWriter | undefined

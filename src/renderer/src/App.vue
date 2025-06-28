@@ -31,7 +31,7 @@ import {
   CLOSE_WINDOW,
   UPDATE_DOWNLOADED,
   CATCH_ERROR
-} from '@constants/index'
+} from '@common/constants'
 
 // 有新版本可以更新
 const updateAvailable = (appVersion: string) => {
@@ -145,20 +145,7 @@ const isDownloadUpdateApp = ref(false)
 const percentage = ref(0)
 
 onMounted(async () => {
-  // 检查更新
-  const {
-    VITE_WIN_APP_UPDATE_URL,
-    VITE_LINUX_APP_UPDATE_URL,
-    VITE_MAC_APP_UPDATE_URL,
-    VITE_APP_UPDATE_SERVER
-  } = import.meta.env
-  ipcRendererUtil.invoke(
-    CHECK_UPDATE,
-    VITE_APP_UPDATE_SERVER,
-    VITE_WIN_APP_UPDATE_URL,
-    VITE_LINUX_APP_UPDATE_URL,
-    VITE_MAC_APP_UPDATE_URL
-  )
+  ipcRendererUtil.invoke(CHECK_UPDATE)
 })
 
 onUnmounted(() => {

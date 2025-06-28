@@ -3,8 +3,9 @@ import { basename, extname } from 'path'
 import { logger } from '@main/utils/logger'
 import { getFileMD5, getChunkMD5BySpark } from '@main/utils/common'
 import { sendUtil } from '@main/utils'
+import { envUtil } from '@common/utils'
 import { IpcMainInvokeEvent } from 'electron'
-import { UPLOAD_FILE, UPDATE_UPLOAD_PROGRESS } from '@constants/index'
+import { UPLOAD_FILE, UPDATE_UPLOAD_PROGRESS } from '@common/constants'
 import { mainWindow } from '@main/index'
 import axios from 'axios'
 import { unlink } from 'fs/promises'
@@ -16,12 +17,12 @@ const REQUEST_HEADERS = {}
 
 const uploadFile = async (
   _event: IpcMainInvokeEvent,
-  { localFilePath, serverUrl, apiPrefix, saveChunkUrl, mergeChunkUrl, checkFileUrl }
+  localFilePath: string
 ): Promise<Result<void>> => {
   localFilePath = localFilePath.slice(0, -5) + '.mp4'
-  const UPLOAD_URL = `${serverUrl}${apiPrefix}${saveChunkUrl}`
-  const MERGE_URL = `${serverUrl}${apiPrefix}${mergeChunkUrl}`
-  const CHECK_URL = `${serverUrl}${apiPrefix}${checkFileUrl}`
+  const UPLOAD_URL = `${envUtil.MAIN_VITE_SEVER_URL}${envUtil.MAIN_VITE_API_PREFIX}${envUtil.MAIN_VITE_SAVE_CHUNK_URL}`
+  const MERGE_URL = `${envUtil.MAIN_VITE_SEVER_URL}${envUtil.MAIN_VITE_API_PREFIX}${envUtil.MAIN_VITE_MERGE_CHUNK_URL}`
+  const CHECK_URL = `${envUtil.MAIN_VITE_SEVER_URL}${envUtil.MAIN_VITE_API_PREFIX}${envUtil.MAIN_VITE_CHECK_FILE_URL}`
 
   const result = {
     success: false

@@ -1,5 +1,5 @@
 import { autoUpdateUtil } from '@main/utils'
-import { DOWNLOAD_UPDATE, INSTALL_UPDATE, CHECK_UPDATE } from '@constants/index'
+import { DOWNLOAD_UPDATE, INSTALL_UPDATE, CHECK_UPDATE } from '@common/constants'
 
 export const autoUpdateHandleHandlerArr = [
   {
