@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => {
   console.log('mode', mode)
   return {
     main: {
-      plugins: [externalizeDepsPlugin(), mode === 'development' ? bytecodePlugin() : undefined],
+      plugins: [externalizeDepsPlugin(), mode === 'development' ? undefined : bytecodePlugin()],
       define: {
         __APP_ENV__: JSON.stringify(mode)
       },
@@ -34,7 +34,7 @@ export default defineConfig(({ mode }) => {
       }
     },
     preload: {
-      plugins: [externalizeDepsPlugin(), mode === 'development' ? bytecodePlugin() : undefined]
+      plugins: [externalizeDepsPlugin(), mode === 'development' ? undefined : bytecodePlugin()]
     },
     renderer: {
       resolve: {
