@@ -55,7 +55,7 @@ export default defineConfig(({ mode }) => {
         vueDevTools(),
         AutoImport({
           imports: ['vue', 'pinia'],
-          resolvers: [ElementPlusResolver()]
+          resolvers: [ElementPlusResolver({ importStyle: 'sass' })]
         }),
         Components({
           resolvers: [ElementPlusResolver({ importStyle: 'sass' })]
