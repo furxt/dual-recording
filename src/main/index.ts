@@ -40,7 +40,7 @@ if (!app.requestSingleInstanceLock()) {
   process.exit(0)
 } else {
   if (is.dev) {
-    logger.debug('开发环境')
+    console.log('开发环境')
   } else {
     //打包后禁止多开窗口
     app.on('second-instance', () => {

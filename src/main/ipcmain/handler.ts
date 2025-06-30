@@ -1,7 +1,6 @@
 import { IpcMainInvokeEvent } from 'electron'
 import { commonHandleHandlerArr, commonOnHandlerArr } from './common'
 import { autoUpdateOnHandlerArr, autoUpdateHandleHandlerArr } from './autoUpdate'
-import { logHandleHandlerArr } from './logger'
 import { videoHandleHandlerArr } from './saveVideo'
 import { uploadFileHandleHandlerArr } from './uploadFile'
 import { logger } from '@main/utils/logger'
@@ -13,7 +12,6 @@ const onHandlerArr = [...autoUpdateOnHandlerArr, ...commonOnHandlerArr]
 const handleHandlerArr = [
   ...autoUpdateHandleHandlerArr,
   ...commonHandleHandlerArr,
-  ...logHandleHandlerArr,
   ...videoHandleHandlerArr,
   ...uploadFileHandleHandlerArr
 ]
