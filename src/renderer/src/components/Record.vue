@@ -454,6 +454,7 @@ const startRecording = async () => {
   if (!result) return
 
   notification?.close()
+  globalConfigStore.isRecording = true
   setTimeout(() => {
     disableStopBtn.value = false
     disablePauseBtn.value = false
@@ -597,6 +598,7 @@ const stopRecording = () => {
       lock: true,
       text: '正在保存视频, 请稍后!'
     })
+    globalConfigStore.isRecording = false
     disableSettingBtn.value = false
     disableStopBtn.value = true
     disableResumeBtn.value = true

@@ -1,5 +1,3 @@
-interface ImportMetaEnv extends ViteEnv {}
-
 interface ViteEnv {
   readonly MAIN_VITE_APP_UPDATE_SERVER: string
   readonly MAIN_VITE_WIN_APP_UPDATE_URL: string

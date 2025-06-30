@@ -1,16 +1,20 @@
 export const useGlobalConfigStore = defineStore(
   'useGlobalConfigStore',
   () => {
+    const isRecording = ref(false)
     const config = ref<Config>({
       audioinputDeviceId: null,
       videoinputDeviceId: null
     })
     return {
-      config
+      config,
+      isRecording
     }
   },
   {
-    persist: true
+    persist: {
+      pick: ['config']
+    }
   }
 )
 

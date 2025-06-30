@@ -2,3 +2,5 @@
 interface ImportMeta {
   readonly env: ImportMetaEnv
 }
+
+interface ImportMetaEnv extends ViteEnv {}

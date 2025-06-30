@@ -20,6 +20,9 @@
 import { Close, Minus } from '@icon-park/vue-next'
 import { ipcRendererUtil } from '@renderer/utils'
 import { WINDOW_CLOSE, WINDOW_MINIMIZE, APP_VERSION } from '@common/constants'
+import { useGlobalConfigStore } from '@renderer/stores'
+
+const globalConfigStore = useGlobalConfigStore()
 
 const props = defineProps({
   showCloseWindowMsgBox: {
@@ -35,21 +38,25 @@ const minimizeWindow = () => {
 }
 
 const closeWindow = () => {
-  if (!props.showCloseWindowMsgBox) {
-    emit('update:showCloseWindowMsgBox', true)
-    ElMessageBox.confirm('确认退出吗?', '警告', {
-      closeOnClickModal: false,
-      confirmButtonText: '确认',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-      .then(() => {
-        ipcRendererUtil.send(WINDOW_CLOSE)
-        emit('update:showCloseWindowMsgBox', false)
+  if (globalConfigStore.isRecording) {
+    ElMessage.warning('请先停止录制')
+  } else {
+    if (!props.showCloseWindowMsgBox) {
+      emit('update:showCloseWindowMsgBox', true)
+      ElMessageBox.confirm('确认退出吗?', '警告', {
+        closeOnClickModal: false,
+        confirmButtonText: '确认',
+        cancelButtonText: '取消',
+        type: 'warning'
       })
-      .catch(() => {
-        emit('update:showCloseWindowMsgBox', false)
-      })
+        .then(() => {
+          ipcRendererUtil.send(WINDOW_CLOSE)
+          emit('update:showCloseWindowMsgBox', false)
+        })
+        .catch(() => {
+          emit('update:showCloseWindowMsgBox', false)
+        })
+    }
   }
 }
 

@@ -39,8 +39,8 @@ export default defineConfig(({ mode }) => {
     renderer: {
       resolve: {
         alias: {
-          '@common': resolve('src/common'),
-          '@renderer': resolve('src/renderer/src')
+          '@renderer': resolve('src/renderer/src'),
+          '@common': resolve('src/common')
         }
       },
       css: {

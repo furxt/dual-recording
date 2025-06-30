@@ -32,6 +32,9 @@ import {
   UPDATE_DOWNLOADED,
   CATCH_ERROR
 } from '@common/constants'
+import { useGlobalConfigStore } from './stores'
+
+const globalConfigStore = useGlobalConfigStore()
 
 // 有新版本可以更新
 const updateAvailable = (appVersion: string) => {
@@ -54,21 +57,25 @@ const updateAvailable = (appVersion: string) => {
 }
 
 const closeAppWindow = () => {
-  if (!showCloseWindowMsgBox.value) {
-    showCloseWindowMsgBox.value = true
-    ElMessageBox.confirm('确认退出吗?', '警告', {
-      closeOnClickModal: false,
-      confirmButtonText: '确认',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-      .then(() => {
-        ipcRendererUtil.send(WINDOW_CLOSE)
+  if (globalConfigStore.isRecording) {
+    ElMessage.warning('请先停止录制')
+  } else {
+    if (!showCloseWindowMsgBox.value) {
+      showCloseWindowMsgBox.value = true
+      ElMessageBox.confirm('确认退出吗?', '警告', {
+        closeOnClickModal: false,
+        confirmButtonText: '确认',
+        cancelButtonText: '取消',
+        type: 'warning'
       })
-      .catch(() => {})
-      .finally(() => {
-        showCloseWindowMsgBox.value = false
-      })
+        .then(() => {
+          ipcRendererUtil.send(WINDOW_CLOSE)
+        })
+        .catch(() => {})
+        .finally(() => {
+          showCloseWindowMsgBox.value = false
+        })
+    }
   }
 }
 
