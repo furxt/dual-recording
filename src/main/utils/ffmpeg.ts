@@ -35,7 +35,7 @@ export const checkFfmpegHomePath = async (): Promise<void> => {
   }
 }
 
-export const setFfmpegHomePath = async (initFlag): Promise<void> => {
+export const setFfmpegHomePath = async (initFlag: boolean): Promise<void> => {
   // 弹出文件夹选择对话框
   const result = await dialog.showOpenDialog(mainWindow!, {
     properties: ['openDirectory'] // 只允许选择文件夹
@@ -58,7 +58,7 @@ export const setFfmpegHomePath = async (initFlag): Promise<void> => {
   }
 }
 
-const confirmSetFfmpegHomePath = async (initFlag): Promise<void> => {
+const confirmSetFfmpegHomePath = async (initFlag: boolean): Promise<void> => {
   const choice = dialog.showMessageBoxSync(mainWindow!, {
     type: 'question',
     buttons: ['确定', '取消'],

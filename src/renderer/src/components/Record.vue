@@ -9,9 +9,9 @@
         >
           <el-option
             v-for="(item, index) in audioinputDevices"
+            :key="`${index}`"
             :label="item.label"
             :value="item.label"
-            :key="index"
           />
         </el-select>
       </el-form-item>
@@ -23,9 +23,9 @@
         >
           <el-option
             v-for="(item, index) in videoinputDevices"
+            :key="`${index}`"
             :label="item.label"
             :value="item.label"
-            :key="index"
           />
         </el-select>
       </el-form-item>
@@ -88,13 +88,13 @@
         <el-button
           type="primary"
           :disabled="disableSettingBtn"
-          @click="openSettingDialog"
           :icon="Setting"
+          @click="openSettingDialog"
         >
           设置
         </el-button>
 
-        <el-button type="primary" :disabled="disableStartBtn" @click="startRecording" :icon="Video">
+        <el-button type="primary" :disabled="disableStartBtn" :icon="Video" @click="startRecording">
           开始
         </el-button>
 
@@ -102,8 +102,8 @@
           v-if="!disablePauseBtn || disableResumeBtn"
           type="primary"
           :disabled="disablePauseBtn"
-          @click="pauseRecording"
           :icon="PauseOne"
+          @click="pauseRecording"
         >
           暂停
         </el-button>
@@ -111,17 +111,17 @@
           v-else
           type="primary"
           :disabled="disableResumeBtn"
-          @click="resumeRecording"
           :icon="GoAhead"
+          @click="resumeRecording"
         >
           继续
         </el-button>
 
-        <el-button type="primary" :disabled="disableStopBtn" @click="stopRecording" :icon="Logout">
+        <el-button type="primary" :disabled="disableStopBtn" :icon="Logout" @click="stopRecording">
           结束
         </el-button>
 
-        <el-button type="primary" :disabled="disableUploadBtn" @click="upload" :icon="Upload">
+        <el-button type="primary" :disabled="disableUploadBtn" :icon="Upload" @click="upload">
           上传
         </el-button>
       </div>
@@ -161,7 +161,7 @@ const showTransCodeProgress = ref(false)
 const transCodeProgress = ref(0)
 const replayTextFlag = ref(true)
 
-const changeResolution = () => {
+const changeResolution = (): void => {
   if (isRecording.value) {
     ElNotification({
       title: '分辨率',
@@ -184,7 +184,7 @@ const changeResolution = () => {
 }
 
 let notification: NotificationHandle | undefined
-const transcodeComplete = () => {
+const transcodeComplete = (): void => {
   transCodeProgress.value = 100
   setTimeout(() => {
     showTransCodeProgress.value = false
@@ -200,6 +200,7 @@ const transcodeComplete = () => {
   }, 500)
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const IpcMessageHandlerMap = new Map<string, (...data: any[]) => void | Promise<void>>([
   [
     CHANGE_RESOLUTION,
@@ -277,7 +278,7 @@ const videoConfig = ref({
   aspectRatio: 1.777
 })
 
-const loadDevices = async () => {
+const loadDevices = async (): Promise<void> => {
   const devices = await navigator.mediaDevices.enumerateDevices()
   videoinputDevices.value.length = 0
   audioinputDevices.value.length = 0
@@ -381,7 +382,7 @@ onBeforeUnmount(() => {
   // 取消定时任务
   if (animationIntervalId) {
     clearTimeout(animationIntervalId)
-    animationIntervalId = null
+    animationIntervalId = undefined
   }
 })
 
@@ -391,7 +392,7 @@ const FRAME_RATE = 30 // 目标帧率，例如 30fps
 const FRAME_INTERVAL = 1000 / FRAME_RATE // 每帧间隔时间（ms）
 let lastDisplayedTime = dayjs().format('YYYY-MM-DD HH:mm:ss') // 初始化为当前时间
 
-const drawOverlay = (timestamp: number) => {
+const drawOverlay = (timestamp: number): void => {
   const video = videoRef.value
   const canvas = canvasRef.value
 
@@ -437,7 +438,11 @@ const drawOverlay = (timestamp: number) => {
 }
 
 // 保存 chunk 到 本地文件夹
-const saveChunkToDB = async (blob: Blob | undefined, uuid: string, chunkId: number) => {
+const saveChunkToDB = async (
+  blob: Blob | undefined,
+  uuid: string,
+  chunkId: number
+): Promise<void> => {
   let arrayBuffer: ArrayBuffer | undefined = await blob?.arrayBuffer()
   await ipcRendererUtil.invoke(SAVE_CHUNK, {
     buffer: arrayBuffer,
@@ -448,7 +453,7 @@ const saveChunkToDB = async (blob: Blob | undefined, uuid: string, chunkId: numb
   arrayBuffer = undefined
 }
 
-const startRecording = async () => {
+const startRecording = async (): Promise<void> => {
   if (isRecording.value) return
   const result = await reloadDevice()
   if (!result) return
@@ -548,9 +553,9 @@ const startRecording = async () => {
   startDrawLoop()
 }
 
-let animationIntervalId: NodeJS.Timeout | null = null
-const startDrawLoop = () => {
-  const loop = () => {
+let animationIntervalId: TimerId | undefined
+const startDrawLoop = (): void => {
+  const loop = (): void => {
     drawOverlay(performance.now())
     animationIntervalId = setTimeout(loop, FRAME_INTERVAL) // 更可控
   }
@@ -558,7 +563,7 @@ const startDrawLoop = () => {
 }
 
 // 切换播放/暂停状态
-const togglePlay = () => {
+const togglePlay = (): void => {
   const video = videoRef.value
   if (video?.paused) {
     video.play()
@@ -567,10 +572,10 @@ const togglePlay = () => {
   }
 }
 
-const pauseRecording = () => {
+const pauseRecording = (): void => {
   if (mediaRecorder && mediaRecorder.state === 'recording') {
     mediaRecorder.pause()
-    clearTimeout(animationIntervalId as NodeJS.Timeout)
+    clearTimeout(animationIntervalId as TimerId)
     togglePlay()
     disablePauseBtn.value = true
     disableResumeBtn.value = false
@@ -579,7 +584,7 @@ const pauseRecording = () => {
   }
 }
 
-const resumeRecording = () => {
+const resumeRecording = (): void => {
   if (mediaRecorder && mediaRecorder.state === 'paused') {
     disablePauseBtn.value = false
     disableResumeBtn.value = true
@@ -592,7 +597,7 @@ const resumeRecording = () => {
 }
 
 let loading: LoadingInstance | undefined
-const stopRecording = () => {
+const stopRecording = (): void => {
   if (mediaRecorder && mediaRecorder.state !== 'inactive') {
     loading = ElLoading.service({
       lock: true,
@@ -609,8 +614,8 @@ const stopRecording = () => {
     mediaRecorder.stop()
     isPaused.value = false
 
-    clearTimeout(animationIntervalId as NodeJS.Timeout)
-    animationIntervalId = null
+    clearTimeout(animationIntervalId as TimerId)
+    animationIntervalId = undefined
 
     // ✅ 恢复原始视频流
     if (videoRef.value) {
@@ -628,7 +633,7 @@ const stopRecording = () => {
   }
 }
 
-const upload = async () => {
+const upload = async (): Promise<void> => {
   disableUploadBtn.value = true
   showUploadProgress.value = true
   disableSettingBtn.value = true
@@ -668,19 +673,19 @@ const upload = async () => {
   }, 500)
 }
 
-const openSettingDialog = async () => {
+const openSettingDialog = async (): Promise<void> => {
   dialogSettingVisible.value = true
   await loadDevices()
 }
 
-const changeVideoInput = (val: string) => {
+const changeVideoInput = (val: string): void => {
   replayTextFlag.value = true
   const videoinputDevice = videoinputDevices.value.find((e) => e.label === val)
   globalConfigStore.config.videoinputDeviceId = videoinputDevice?.deviceId as string
   reloadDevice()
 }
 
-const changeAudioInput = (val: string) => {
+const changeAudioInput = (val: string): void => {
   replayTextFlag.value = true
   const audioinputDevice = audioinputDevices.value.find((e) => e.label === val)
   globalConfigStore.config.audioinputDeviceId = audioinputDevice?.deviceId as string

@@ -2,7 +2,6 @@ import { autoUpdater } from 'electron-updater'
 import { sendApp } from './send'
 import { logger } from './logger'
 import { envUtil } from '@common/utils'
-
 import { generateErrorMsg, sendError } from './common'
 import { mainWindow } from '@main/index'
 import {
@@ -11,7 +10,6 @@ import {
   UPDATE_DOWNLOADED,
   PRIMARY_MESSAGE
 } from '@common/constants'
-import { IpcMainInvokeEvent } from 'electron'
 import { platform } from '@electron-toolkit/utils'
 
 // 每次启动自动更新检查更新版本
@@ -104,7 +102,7 @@ export const generalCheckUpdate = (needWarn: boolean): void => {
 /**
  * 自动更新的逻辑
  */
-export const checkUpdate = (_event: IpcMainInvokeEvent): void => {
+export const checkUpdate = (): void => {
   generalCheckUpdate(false)
 }
 

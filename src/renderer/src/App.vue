@@ -4,7 +4,7 @@
       <div v-if="isDownloadUpdateApp" class="absolute-center">
         <el-progress type="dashboard" :percentage="percentage" :color="progressConstant.colors" />
       </div>
-      <TitleBar v-model:showCloseWindowMsgBox="showCloseWindowMsgBox" />
+      <TitleBar v-model:show-close-window-msg-box="showCloseWindowMsgBox" />
       <Record />
 
       <!-- <div class="flex">
@@ -37,7 +37,7 @@ import { useGlobalConfigStore } from './stores'
 const globalConfigStore = useGlobalConfigStore()
 
 // 有新版本可以更新
-const updateAvailable = (appVersion: string) => {
+const updateAvailable = (appVersion: string): void => {
   ElMessageBox.confirm(`检测到有新版本 ${appVersion} 可用，是否下载更新？`, '更新提示', {
     closeOnClickModal: false,
     confirmButtonText: '确认',
@@ -56,7 +56,7 @@ const updateAvailable = (appVersion: string) => {
     .catch(() => {})
 }
 
-const closeAppWindow = () => {
+const closeAppWindow = (): void => {
   if (globalConfigStore.isRecording) {
     ElMessage.warning('请先停止录制')
   } else {
@@ -79,7 +79,7 @@ const closeAppWindow = () => {
   }
 }
 
-const updateDownloaded = () => {
+const updateDownloaded = (): void => {
   setTimeout(() => {
     if (loading) {
       loading.close()
@@ -99,6 +99,7 @@ const updateDownloaded = () => {
   }, 500)
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const IpcMessageHandlerMap = new Map<string, (...data: any[]) => void | Promise<void>>([
   [
     PRIMARY_MESSAGE,

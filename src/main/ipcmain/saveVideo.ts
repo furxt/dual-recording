@@ -20,8 +20,9 @@ const queue: PQueue = new PQueue.default({ concurrency: 1 }) // 串行队列
  */
 const saveChunk = async (
   _event: IpcMainInvokeEvent,
-  { buffer, uuid, chunkId }
+  params: { buffer: ArrayBuffer; uuid: string; chunkId: number }
 ): Promise<Result<void>> => {
+  const { buffer, uuid, chunkId } = params
   const folderPath = join(videoDir, uuid)
   if (!existsSync(folderPath)) {
     mkdirSync(folderPath, { recursive: true })
@@ -45,7 +46,11 @@ const saveChunk = async (
 /**
  * 修复视频时间戳
  */
-const repairVideo = async (_event: IpcMainInvokeEvent, { uuid }): Promise<Result<string>> => {
+const repairVideo = async (
+  _event: IpcMainInvokeEvent,
+  params: { uuid: string }
+): Promise<Result<string>> => {
+  const { uuid } = params
   const ffmpegPath = getFfmpegPath()
   const totalFragmentFile = join(videoDir, uuid, uuid)
   const webmVideoPath = join(videoDir, uuid, `${uuid}.webm`)

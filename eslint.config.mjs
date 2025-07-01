@@ -5,7 +5,6 @@ import vueParser from 'vue-eslint-parser'
 
 export default tseslint.config(
   { ignores: ['**/node_modules', '**/dist', '**/out'] },
-  // ✅ 必须包含这个配置块才能完全支持 Vue 的规则选项
   eslintPluginVue.configs['flat/recommended'],
   tseslint.configs.recommended,
   {
@@ -18,16 +17,24 @@ export default tseslint.config(
         },
         extraFileExtensions: ['.vue'],
         parser: tseslint.parser
+      },
+      globals: {
+        ref: 'readonly',
+        reactive: 'readonly',
+        computed: 'readonly',
+        onMounted: 'readonly',
+        onUnmounted: 'readonly',
+        onBeforeUnmount: 'readonly',
+        TimerId: 'readonly',
+        WindowSizeInfo: 'readonly',
+        Result: 'readonly',
+
+        // 其他你用到的自动导入 API
+        ElMessageBox: 'readonly',
+        ElNotification: 'readonly',
+        ElLoading: 'readonly',
+        ElMessage: 'readonly'
       }
-    },
-    rules: {
-      'vue/no-unused-components': [
-        'error',
-        {
-          ignore: ['el-*'],
-          ignoreWhenBindingPresent: true
-        }
-      ]
     }
   },
   {

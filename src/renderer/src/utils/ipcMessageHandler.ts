@@ -1,6 +1,10 @@
 class IpcMessageHandler {
   private pageCode: string
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private handlerMap: Map<string, (...data: any[]) => void | Promise<void>>
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor(pageCode: string, handlerMap: Map<string, (...data: any[]) => void | Promise<void>>) {
     this.pageCode = pageCode
     this.handlerMap = handlerMap

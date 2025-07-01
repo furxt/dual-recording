@@ -27,45 +27,50 @@ log.initialize()
 
 // 有六个日志级别error, warn, info, verbose, debug, silly。默认是silly
 export const logger = {
-  info(...params: any[]) {
+  info(...params: unknown[]) {
     if (is.dev) {
       console.log('Main', ...params)
     } else {
       log.info('Main', ...params)
     }
   },
-  warn(...params: any[]) {
+  warn(...params: unknown[]) {
     if (is.dev) {
-      console.debug('Main', '⚠️', ...params)
+      console.debug('Main⚠️', ...params)
     } else {
-      log.warn('Main', '⚠️', ...params)
+      log.warn('Main⚠️', ...params)
     }
   },
-  error(...params: any[]) {
+
+  error(...params: unknown[]) {
     if (is.dev) {
-      console.error('Main', '❌', ...params)
+      console.error('Main❌', ...params)
     } else {
-      log.error('Main', '❌', ...params)
+      log.error('Main❌', ...params)
     }
   },
-  success(...params: any[]) {
+
+  success(...params: unknown[]) {
     if (is.dev) {
-      console.info('Main', '✅', ...params)
+      console.info('Main✅', ...params)
     } else {
-      log.info('Main', '✅', ...params)
+      log.info('Main✅', ...params)
     }
   },
-  debug(...params: any[]) {
+
+  debug(...params: unknown[]) {
     if (is.dev) {
-      console.debug('Main', '🐞', ...params)
+      console.debug('Main🐞', ...params)
     } else {
-      log.debug('Main', '🐞', ...params)
+      log.debug('Main🐞', ...params)
     }
   },
-  verbose(...params: any[]) {
+
+  verbose(...params: unknown[]) {
     log.verbose('Main', ...params)
   },
-  silly(...params: any[]) {
+
+  silly(...params: unknown[]) {
     log.silly('Main', ...params)
   }
 }

@@ -5,11 +5,11 @@
     </div>
     <!-- 右侧操作按钮 -->
     <div class="title-bar-controls">
-      <button class="control-btn minimize-btn" @click="minimizeWindow" title="最小化">
+      <button class="control-btn minimize-btn" title="最小化" @click="minimizeWindow">
         <Minus theme="outline" size="14" fill="#ffffff" />
       </button>
 
-      <button class="control-btn close-btn" @click="closeWindow" title="关闭">
+      <button class="control-btn close-btn" title="关闭" @click="closeWindow">
         <Close theme="outline" size="14" fill="#ffffff" />
       </button>
     </div>
@@ -33,11 +33,11 @@ const props = defineProps({
 
 const emit = defineEmits(['update:showCloseWindowMsgBox'])
 
-const minimizeWindow = () => {
+const minimizeWindow = (): void => {
   ipcRendererUtil.send(WINDOW_MINIMIZE)
 }
 
-const closeWindow = () => {
+const closeWindow = (): void => {
   if (globalConfigStore.isRecording) {
     ElMessage.warning('请先停止录制')
   } else {
