@@ -17,9 +17,6 @@ win:
     - nsis
   executableName: dual-recording
   icon: build/icon.ico
-  # publish:
-  #   provider: generic
-  #   url: http://localhost:8099/packages/win32/
 nsis:
   oneClick: false
   perMachine: false
@@ -52,8 +49,5 @@ linux:
 appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false
-# publish:
-#   provider: generic
-#   url: https://example.com/auto-updates
 electronDownload:
   mirror: https://npmmirror.com/mirrors/electron/

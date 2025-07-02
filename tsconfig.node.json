@@ -12,17 +12,11 @@
     "moduleResolution": "bundler",
     "esModuleInterop": true, // 允许混合 CommonJS/ESM 导入
     "composite": true,
-    "types": [
-      "electron-vite/node"
-    ],
+    "types": ["electron-vite/node"],
     "baseUrl": ".",
     "paths": {
-      "@main/*": [
-        "src/main/*"
-      ],
-      "@common/*": [
-        "src/common/*"
-      ]
+      "@main/*": ["src/main/*"],
+      "@common/*": ["src/common/*"]
     }
   }
 }

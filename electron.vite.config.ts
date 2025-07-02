@@ -1,5 +1,5 @@
 import { resolve } from 'path'
-import { bytecodePlugin, defineConfig, externalizeDepsPlugin } from 'electron-vite'
+import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 import vue from '@vitejs/plugin-vue'
 import tailwindcss from '@tailwindcss/vite'
@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => {
   console.log('mode', mode)
   return {
     main: {
-      plugins: [externalizeDepsPlugin(), mode === 'development' ? undefined : bytecodePlugin()],
+      plugins: [externalizeDepsPlugin()],
       define: {
         __APP_ENV__: JSON.stringify(mode)
       },
@@ -34,7 +34,7 @@ export default defineConfig(({ mode }) => {
       }
     },
     preload: {
-      plugins: [externalizeDepsPlugin(), mode === 'development' ? undefined : bytecodePlugin()]
+      plugins: [externalizeDepsPlugin()] //mode === 'development' ? undefined : bytecodePlugin() 字节码加密
     },
     renderer: {
       resolve: {
