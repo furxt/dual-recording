@@ -17,7 +17,7 @@ export default defineConfig(({ mode }) => {
         __APP_ENV__: JSON.stringify(mode)
       },
       esbuild: {
-        drop: mode === 'production' ? ['console', 'debugger'] : [] // 在生产环境中移除 console debugger
+        drop: mode !== 'development' ? ['console', 'debugger'] : [] // 在生产环境中移除 console debugger
       },
       build: {
         rollupOptions: {
@@ -64,13 +64,11 @@ export default defineConfig(({ mode }) => {
         tailwindcss()
       ],
       esbuild: {
-        drop: mode === 'production' ? ['console', 'debugger'] : [] // 在生产环境中移除 console debugger
+        drop: mode !== 'development' ? ['console', 'debugger'] : [] // 在生产环境中移除 console debugger
       },
       build: {
         rollupOptions: {
           output: {
-            format: 'esm', // 👈 强制使用 ESM 格式，提高 Sass 兼容性
-            exports: 'named',
             chunkFileNames: 'assets/js/[name]-[hash].js',
             // 自定义输出目录和文件名
             entryFileNames: 'assets/js/[name]-[hash].js',

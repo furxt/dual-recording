@@ -26,7 +26,7 @@ const saveChunk = async (
   const folderPath = join(videoDir, uuid)
   if (!existsSync(folderPath)) {
     mkdirSync(folderPath, { recursive: true })
-    logger.success(`开始录像, ${folderPath} 文件夹创建成功`)
+    logger.success('开始录像,', folderPath, '文件夹创建成功')
   }
 
   // 写入 webm 分片文件
@@ -62,12 +62,12 @@ const repairVideo = async (
     fileWriter?.close().then(() => {
       fileWriter = undefined
     })
-    logger.success(`录像结束, ${totalFragmentFile} 文件保存成功`)
+    logger.success('录像结束,', totalFragmentFile, '文件保存成功')
 
     // 修复分片导致时间戳缺失的问题
     const fixedArgs = ['-i', totalFragmentFile, '-c', 'copy', '-fflags', '+genpts', webmVideoPath]
     await runFFmpegTranscode(ffmpegPath, fixedArgs)
-    logger.debug(`ffmpeg 修复 ${totalFragmentFile} 文件完成, 已生成 ${webmVideoPath} 文件`)
+    logger.debug('ffmpeg 修复', totalFragmentFile, '文件完成,', '已生成', webmVideoPath, '文件')
     // 使用 Promise 包装整个转码异步过程
     new Promise<void>((resolve, reject) => {
       try {
@@ -90,23 +90,23 @@ const repairVideo = async (
           mp4VideoPath
         ]
         // 执行 FFmpeg 转码WebM → MP4
-        logger.debug(`开始转码 ${webmVideoPath} 文件...`)
+        logger.debug('开始转码', webmVideoPath, '文件...')
         runFFmpegTranscode(ffmpegPath, ffmpegArgs, (progress: number) => {
           sendUtil.sendRecord(mainWindow!, TRANSCODE_PROGRESS, progress)
         }).then(() => {
-          logger.debug(`ffmpeg ${webmVideoPath} 文件转码成功, 已生成 ${mp4VideoPath} 文件`)
+          logger.debug('ffmpeg', webmVideoPath, '文件转码成功, 已生成', mp4VideoPath, '文件')
           sendUtil.sendRecord(mainWindow!, TRANSCODE_COMPLETE)
         })
         resolve()
       } catch (err) {
-        logger.error(`${mp4VideoPath} 文件转码过程中发生错误: ${err}`)
+        logger.error(mp4VideoPath, '文件转码过程中发生错误:\n', err)
         reject(err)
       }
     })
 
     return { success: true, message: '录像本地保存成功', data: webmVideoPath }
   } catch (error) {
-    logger.error(`修复 ${totalFragmentFile} 文件时间戳失败: ${error}`)
+    logger.error('修复', totalFragmentFile, '文件时间戳失败:\n', error)
     return { success: false, error: '录像本地保存失败' }
   }
 }

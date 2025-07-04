@@ -112,23 +112,23 @@ export const runFFmpegTranscode = (
         if (callback) {
           callback(Math.floor(progress))
         }
-        logger.debug(`当前进度: ${Math.floor(progress)}%`)
+        logger.debug('当前进度:', `${Math.floor(progress)}%`)
       }
     })
 
     ffmpeg.on('close', (code) => {
       if (code === 0) {
-        logger.debug(`FFmpeg 执行命令【${ffmpegPath} ${args.join(' ')}】成功`)
+        logger.debug('FFmpeg 执行命令', ffmpegPath, args.join(' '), '成功')
         resolve()
       } else {
-        const errorMessage = `FFmpeg 执行命令【${ffmpegPath} ${args.join(' ')}】失败, 退出码: ${code}\nstderr 完整输出:\n${stdOutput}`
+        const errorMessage = `FFmpeg 执行命令 ${ffmpegPath} ${args.join(' ')} 失败, 退出码: ${code}\nstderr 完整输出:\n${stdOutput}`
         logger.error(errorMessage)
         reject(new Error(errorMessage))
       }
     })
 
     ffmpeg.on('error', (err) => {
-      logger.error(`启动 FFmpeg 时发生错误: ${err.message}`)
+      logger.error(`启动 FFmpeg 时发生错误\n: ${err.message}`)
       reject(err)
     })
 
