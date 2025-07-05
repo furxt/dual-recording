@@ -5,7 +5,6 @@ import vue from '@vitejs/plugin-vue'
 import tailwindcss from '@tailwindcss/vite'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
-import viteCompression from 'vite-plugin-compression'
 import vueDevTools from 'vite-plugin-vue-devtools'
 
 export default defineConfig(({ mode }) => {
@@ -22,7 +21,7 @@ export default defineConfig(({ mode }) => {
       build: {
         rollupOptions: {
           output: {
-            exports: 'named' // 👈 关键配置，解决警告
+            exports: 'named' // 解决警告
           }
         }
       },
@@ -60,7 +59,6 @@ export default defineConfig(({ mode }) => {
         Components({
           resolvers: [ElementPlusResolver({ importStyle: 'sass' })]
         }),
-        viteCompression(),
         tailwindcss()
       ],
       esbuild: {
