@@ -68,7 +68,7 @@
       />
 
       <!-- 录制红点 -->
-      <div v-if="showRed" class="recording-indicator absolute top-3 right-3" />
+      <div v-show="showRed" class="recording-indicator absolute top-1 right-1" />
 
       <!-- 提示层 -->
       <div v-if="isPaused" class="overlay-message absolute-center">当前录制已暂停</div>
@@ -127,8 +127,6 @@
       </div>
     </div>
   </div>
-
-  <!-- 设置弹窗保持不变 -->
 </template>
 
 <script setup lang="ts">
@@ -236,10 +234,10 @@ const localFilePath = ref('')
 const isRecording = ref(false)
 const isPaused = ref(false)
 
-let canvasStream: MediaStream | null = null
-let mediaStream: MediaStream | null = null
-let mediaRecorder: MediaRecorder | null = null
-let animationFrameId: number | null = null
+let canvasStream: MediaStream | undefined
+let mediaStream: MediaStream
+let mediaRecorder: MediaRecorder
+let animationFrameId: number | undefined
 
 const disableReplayBtn = ref(true)
 const disableSettingBtn = ref(false)
@@ -348,7 +346,7 @@ onMounted(async () => {
 onBeforeUnmount(() => {
   // 停止动画帧请求
   if (!animationFrameId) {
-    cancelAnimationFrame(animationFrameId as unknown as number)
+    cancelAnimationFrame(animationFrameId!)
   }
 
   // 如果正在录制，则停止录制
@@ -541,10 +539,19 @@ const startRecording = async (): Promise<void> => {
 }
 
 let animationIntervalId: TimerId | undefined
+let lastFrameTime: number = 0
 const startDrawLoop = (): void => {
   const loop = (): void => {
-    drawOverlay(performance.now())
-    animationIntervalId = setTimeout(loop, FRAME_INTERVAL) // 更可控
+    const now = performance.now()
+    const delta = now - lastFrameTime
+
+    // 如果距离上一帧时间足够，才执行（避免堆积）
+    if (delta >= FRAME_INTERVAL) {
+      drawOverlay(now)
+      lastFrameTime = now - (delta % FRAME_INTERVAL) // 修正时间，避免漂移
+    }
+
+    animationIntervalId = setTimeout(loop, Math.max(0, FRAME_INTERVAL - delta))
   }
   loop()
 }
@@ -562,7 +569,7 @@ const togglePlay = (): void => {
 const pauseRecording = (): void => {
   if (mediaRecorder && mediaRecorder.state === 'recording') {
     mediaRecorder.pause()
-    clearTimeout(animationIntervalId as TimerId)
+    clearTimeout(animationIntervalId)
     togglePlay()
     disablePauseBtn.value = true
     disableResumeBtn.value = false
@@ -601,21 +608,21 @@ const stopRecording = (): void => {
     mediaRecorder.stop()
     isPaused.value = false
 
-    clearTimeout(animationIntervalId as TimerId)
+    clearTimeout(animationIntervalId)
     animationIntervalId = undefined
 
-    // ✅ 恢复原始视频流
+    // 恢复原始视频流
     if (videoRef.value) {
       videoRef.value.srcObject = null
     }
-    // ✅ 停止 video 流
+    // 停止 video 流
     if (mediaStream) {
       mediaStream.getTracks().forEach((track) => track.stop())
     }
-    // ✅ 停止 canvas 流
+    // 停止 canvas 流
     if (canvasStream) {
       canvasStream.getTracks().forEach((track) => track.stop())
-      canvasStream = null
+      canvasStream = undefined
     }
   }
 }
