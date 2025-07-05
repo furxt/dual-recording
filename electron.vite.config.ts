@@ -6,6 +6,7 @@ import tailwindcss from '@tailwindcss/vite'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import vueDevTools from 'vite-plugin-vue-devtools'
+import htmlMinifier from 'vite-plugin-html-minifier'
 
 export default defineConfig(({ mode }) => {
   console.log('mode', mode)
@@ -59,7 +60,8 @@ export default defineConfig(({ mode }) => {
         Components({
           resolvers: [ElementPlusResolver({ importStyle: 'sass' })]
         }),
-        tailwindcss()
+        tailwindcss(),
+        htmlMinifier({ minify: mode !== 'development' })
       ],
       esbuild: {
         drop: mode !== 'development' ? ['console', 'debugger'] : [] // 在生产环境中移除 console debugger
