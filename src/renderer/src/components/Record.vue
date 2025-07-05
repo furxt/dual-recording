@@ -132,13 +132,17 @@
 </template>
 
 <script setup lang="ts">
+import type { LoadingInstance } from 'element-plus/es/components/loading/src/loading'
+import type { NotificationHandle } from 'element-plus'
+import type { IpcRendererEvent } from 'electron/renderer'
 import { v4 as uuidv4 } from 'uuid'
 import { dayjs } from 'element-plus'
 import { GoAhead, Logout, PauseOne, Setting, Upload, Video } from '@icon-park/vue-next'
 import { useGlobalConfigStore } from '@renderer/stores'
 import { progressConstant } from '@renderer/constants'
-import type { LoadingInstance } from 'element-plus/es/components/loading/src/loading'
-import type { NotificationHandle } from 'element-plus'
+import { Conf } from 'electron-conf/renderer'
+import { IpcMessageHandler, ipcRendererUtil } from '@renderer/utils'
+import { envUtil } from '@common/utils'
 import {
   RELAUNCH,
   SAVE_CHUNK,
@@ -152,10 +156,6 @@ import {
   CONF_WINDOW_SIZE,
   RECORD_LOG
 } from '@common/constants'
-import { Conf } from 'electron-conf/renderer'
-import { IpcMessageHandler, ipcRendererUtil } from '@renderer/utils'
-import { envUtil } from '@common/utils'
-import { IpcRendererEvent } from 'electron/renderer'
 
 const conf = new Conf()
 const showTransCodeProgress = ref(false)

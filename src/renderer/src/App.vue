@@ -16,9 +16,11 @@
 </template>
 
 <script setup lang="ts">
-import { progressConstant } from './constants'
+import type { IpcRendererEvent } from 'electron/renderer'
 import type { LoadingInstance } from 'element-plus/es/components/loading/src/loading'
+import { progressConstant } from './constants'
 import { IpcMessageHandler, ipcRendererUtil } from './utils'
+import { useGlobalConfigStore } from './stores'
 import {
   DOWNLOAD_UPDATE,
   INSTALL_UPDATE,
@@ -32,8 +34,6 @@ import {
   UPDATE_DOWNLOADED,
   CATCH_ERROR
 } from '@common/constants'
-import { useGlobalConfigStore } from './stores'
-import { IpcRendererEvent } from 'electron/renderer'
 
 const globalConfigStore = useGlobalConfigStore()
 
