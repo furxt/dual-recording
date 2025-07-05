@@ -1,20 +1,22 @@
 class IpcMessageHandler {
   private pageCode: string
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private handlerMap: Map<string, (...data: any[]) => void | Promise<void>>
+  private handlerMap: Map<string, (...data: unknown[]) => void | Promise<void>>
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  constructor(pageCode: string, handlerMap: Map<string, (...data: any[]) => void | Promise<void>>) {
+  constructor(
+    pageCode: string,
+    handlerMap: Map<string, (...data: unknown[]) => void | Promise<void>>
+  ) {
     this.pageCode = pageCode
     this.handlerMap = handlerMap
     this.init()
   }
 
   init(): void {
-    window.electron.ipcRenderer.on(this.pageCode, (_event, code, ...data) => {
+    window.electron.ipcRenderer.on(this.pageCode, (event, code: string, ...data) => {
+      console.log('收到主进程的消息', event, code, data)
       if (this.handlerMap.has(code)) {
-        this.handlerMap.get(code)!(...data)
+        this.handlerMap.get(code)!(event, ...data)
       } else {
         console.log(`${this.pageCode} 没有 ${code} 的handler`)
       }

@@ -33,6 +33,7 @@ import {
   CATCH_ERROR
 } from '@common/constants'
 import { useGlobalConfigStore } from './stores'
+import { IpcRendererEvent } from 'electron/renderer'
 
 const globalConfigStore = useGlobalConfigStore()
 
@@ -103,43 +104,27 @@ const updateDownloaded = (): void => {
 const IpcMessageHandlerMap = new Map<string, (...data: any[]) => void | Promise<void>>([
   [
     PRIMARY_MESSAGE,
-    (primaryMsg: string) => {
-      console.log('node发送过来的常规消息', primaryMsg)
+    (_event: IpcRendererEvent, primaryMsg: string) => {
       ElMessage.primary(primaryMsg)
     }
   ],
   [
     UPDATE_AVAILABLE,
-    (appVersion: string) => {
-      console.log('检测到有新版本可以更新')
+    (_event: IpcRendererEvent, appVersion: string) => {
       updateAvailable(appVersion)
     }
   ],
   [
     DOWNLOAD_PROGRESS,
-    (percentageVal: number) => {
-      console.log('更新下载进度条', percentageVal)
+    (_event: IpcRendererEvent, percentageVal: number) => {
       percentage.value = percentageVal
     }
   ],
-  [
-    CLOSE_WINDOW,
-    () => {
-      console.log('关闭窗口')
-      closeAppWindow()
-    }
-  ],
-  [
-    UPDATE_DOWNLOADED,
-    () => {
-      console.log('更新下载完成')
-      updateDownloaded()
-    }
-  ],
+  [CLOSE_WINDOW, closeAppWindow],
+  [UPDATE_DOWNLOADED, updateDownloaded],
   [
     CATCH_ERROR,
-    (errorMsg: string) => {
-      console.log('收到node捕获的错误消息', errorMsg)
+    (_event: IpcRendererEvent, errorMsg: string) => {
       ElMessage.error(errorMsg)
     }
   ]

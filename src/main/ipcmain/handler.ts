@@ -39,18 +39,20 @@ class Handler {
     handlerArr.length = 0
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  handle(event: IpcMainInvokeEvent, code: string, ...args: any[]): Promise<any> | any {
+  handle(event: IpcMainInvokeEvent, code: string, ...args: unknown[]): Promise<unknown> | unknown {
     const fun = this.handelHandlerMap.get(code)
     if (fun) return fun(event, ...args)
-    else logger.error(`${code} 处理器未注入`)
+    else {
+      const errMsg = `${code} handle处理器未注入`
+      logger.error(errMsg)
+      return Promise.reject(new Error(errMsg))
+    }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  on(event: IpcMainInvokeEvent, code: string, ...args: any[]): void {
+  on(event: IpcMainInvokeEvent, code: string, ...args: unknown[]): void {
     const fun = this.onHandlerMap.get(code)
     if (fun) fun(event, ...args)
-    else logger.error(`${code} 处理器未注入`)
+    else logger.error(`${code} on处理器未注入`)
   }
 
   /**
@@ -76,7 +78,7 @@ class Handler {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type HandleFunction = (...args: any[]) => Promise<any> | any
+type HandleFunction = (...args: any[]) => Promise<unknown> | unknown
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type VoidFunction = (...args: any[]) => void
 

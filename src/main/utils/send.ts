@@ -1,12 +1,13 @@
 import { BrowserWindow } from 'electron'
 import { APP_PAGE, RECORD_PAGE } from '@common/constants'
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const sendApp = (window: BrowserWindow, code: string, ...args: any[]): void => {
+
+// 发送到主根页面
+export const sendApp = (window: BrowserWindow, code: string, ...args: unknown[]): void => {
   window.webContents.send(APP_PAGE, code, ...args)
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const sendRecord = (window: BrowserWindow, code: string, ...args: any[]): void => {
+// 发送到录制页面
+export const sendRecord = (window: BrowserWindow, code: string, ...args: unknown[]): void => {
   window.webContents.send(RECORD_PAGE, code, ...args)
 }
 

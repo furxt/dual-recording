@@ -10,14 +10,14 @@ import SparkMD5 from 'spark-md5'
 // 打包时的环境 development | production | test
 export const APP_ENV = __APP_ENV__
 
-// 项目名
+// 应用名
 const projectName = 'dual-recording'
-// 项目根目录
+// 应用根目录
 export const rootDir = is.dev ? app.getAppPath() : app.getPath('exe')
+// 用户数据目录
+const appData = app.getPath('appData')
 // 影像保存的路径
-export const videoDir = is.dev
-  ? join(rootDir, 'videos')
-  : join(app.getPath('appData'), projectName, 'videos')
+export const videoDir = is.dev ? join(rootDir, 'videos') : join(appData, projectName, 'videos')
 
 export const windowSizeArray: WindowSizeInfo[] = [
   {

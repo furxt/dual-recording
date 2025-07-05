@@ -155,6 +155,7 @@ import {
 import { Conf } from 'electron-conf/renderer'
 import { IpcMessageHandler, ipcRendererUtil } from '@renderer/utils'
 import { envUtil } from '@common/utils'
+import { IpcRendererEvent } from 'electron/renderer'
 
 const conf = new Conf()
 const showTransCodeProgress = ref(false)
@@ -202,31 +203,17 @@ const transcodeComplete = (): void => {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const IpcMessageHandlerMap = new Map<string, (...data: any[]) => void | Promise<void>>([
-  [
-    CHANGE_RESOLUTION,
-    () => {
-      console.log('修改录制分辨率')
-      changeResolution()
-    }
-  ],
+  [CHANGE_RESOLUTION, changeResolution],
   [
     UPDATE_UPLOAD_PROGRESS,
-    (index: number, total: number) => {
-      console.log('更新上传进度条', index, total)
+    (_event: IpcRendererEvent, index: number, total: number) => {
       percentage.value = index === total ? 99 : Math.floor((index / total) * 100)
     }
   ],
-  [
-    TRANSCODE_COMPLETE,
-    () => {
-      console.log('转码已完成')
-      transcodeComplete()
-    }
-  ],
+  [TRANSCODE_COMPLETE, transcodeComplete],
   [
     TRANSCODE_PROGRESS,
-    (transCodeProgressVal: number) => {
-      console.log('转码进度', transCodeProgressVal)
+    (_event: IpcRendererEvent, transCodeProgressVal: number) => {
       transCodeProgress.value = transCodeProgressVal
     }
   ]
@@ -649,7 +636,10 @@ const upload = async (): Promise<void> => {
     background: 'rgba(0, 0, 0, 0.2)', // 黑色半透明背景
     customClass: 'transparent-loading' // 自定义类名
   })
-  const { success } = await ipcRendererUtil.invoke(UPLOAD_FILE, localFilePath.value)
+  const { success } = (await ipcRendererUtil.invoke(
+    UPLOAD_FILE,
+    localFilePath.value
+  )) as Result<void>
 
   notification?.close()
   notification = undefined

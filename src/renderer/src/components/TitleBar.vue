@@ -51,9 +51,9 @@ const closeWindow = (): void => {
       })
         .then(() => {
           ipcRendererUtil.send(WINDOW_CLOSE)
-          emit('update:showCloseWindowMsgBox', false)
         })
-        .catch(() => {
+        .catch(() => {})
+        .finally(() => {
           emit('update:showCloseWindowMsgBox', false)
         })
     }
@@ -62,7 +62,7 @@ const closeWindow = (): void => {
 
 const version = ref('')
 onMounted(async () => {
-  version.value = await ipcRendererUtil.invoke(APP_VERSION)
+  version.value = (await ipcRendererUtil.invoke(APP_VERSION)) as string
 })
 </script>
 
