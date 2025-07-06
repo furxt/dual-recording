@@ -24,14 +24,10 @@ import { WINDOW_CLOSE, WINDOW_MINIMIZE, APP_VERSION } from '@common/constants'
 
 const globalConfigStore = useGlobalConfigStore()
 
-const props = defineProps({
-  showCloseWindowMsgBox: {
-    type: Boolean,
-    default: false
-  }
+const showCloseWindowMsgBox = defineModel('showCloseWindowMsgBox', {
+  default: false,
+  type: Boolean
 })
-
-const emit = defineEmits(['update:showCloseWindowMsgBox'])
 
 const minimizeWindow = (): void => {
   ipcRendererUtil.send(WINDOW_MINIMIZE)
@@ -41,8 +37,8 @@ const closeWindow = (): void => {
   if (globalConfigStore.isRecording) {
     ElMessage.warning('请先停止录制')
   } else {
-    if (!props.showCloseWindowMsgBox) {
-      emit('update:showCloseWindowMsgBox', true)
+    if (!showCloseWindowMsgBox.value) {
+      showCloseWindowMsgBox.value = true
       ElMessageBox.confirm('确认退出吗?', '警告', {
         closeOnClickModal: false,
         confirmButtonText: '确认',
@@ -54,7 +50,7 @@ const closeWindow = (): void => {
         })
         .catch(() => {})
         .finally(() => {
-          emit('update:showCloseWindowMsgBox', false)
+          showCloseWindowMsgBox.value = false
         })
     }
   }

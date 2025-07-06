@@ -16,6 +16,11 @@ export const createMainWindow = async (icon: NativeImage | string): Promise<Brow
     autoHideMenuBar: true,
     // frame: false, // 这将隐藏默认的标题栏
     titleBarStyle: 'hidden',
+    // titleBarOverlay: {
+    //   color: 'rgba(0,0,0,0)',
+    //   height: 35,
+    //   symbolColor: 'white'
+    // },
     resizable: false, // 禁止调整大小
     // skipTaskbar: true, // 禁止在任务栏中显示
     ...(platform.isWindows || platform.isLinux ? { icon } : {}),
