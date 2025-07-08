@@ -13,7 +13,7 @@ log.transports.file.format = '[{y}-{m}-{d} {h}:{i}:{s}.{ms}] [{level}]{scope} {t
 
 const dateStr = dayjs().format('YYYY-MM-DD')
 // 文件位置及命名方式
-// 默认位置为：C:\Users\[user]\AppData\Roaming\[appname]\electron_log\
+// 默认位置为：C:\Users\[user]\AppData\Roaming\[appName]\electron_log\
 // 文件名为：年-月-日.log
 // 自定义文件保存位置为安装目录下的 logs\年-月-日.log
 log.transports.file.resolvePathFn = () => {
