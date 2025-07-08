@@ -1,9 +1,9 @@
+import type { OnHandler, HandleHandler } from './handler'
 import { app } from 'electron'
 import { is } from '@electron-toolkit/utils'
 import { mainWindow } from '@main/index'
-import { localConf } from '@main/utils/globalConf'
-import { logger } from '@main/utils/logger'
-import type { OnHandler, HandleHandler } from './handler'
+import { logUtil, globalConfUtil } from '@main/utils'
+
 import {
   WINDOW_CLOSE,
   WINDOW_MINIMIZE,
@@ -23,14 +23,16 @@ const windowMinimize = (): void => {
 }
 
 const relaunch = (): void => {
-  logger.info('准备重启...')
+  logUtil.info('准备重启...')
   if (!is.dev) {
     mainWindow?.removeAllListeners('close') // 移除监听器避免循环
     app.relaunch()
     app.quit()
   } else {
     mainWindow?.hide()
-    const { windowWidth, windowHeight } = localConf.get(CONF_WINDOW_SIZE) as WindowSizeInfo
+    const { windowWidth, windowHeight } = globalConfUtil.localConf.get(
+      CONF_WINDOW_SIZE
+    ) as WindowSizeInfo
     mainWindow?.reload()
     mainWindow?.setContentSize(windowWidth, windowHeight)
     setTimeout(() => {

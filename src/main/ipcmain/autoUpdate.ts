@@ -1,6 +1,6 @@
+import type { OnHandler, HandleHandler } from './handler'
 import { autoUpdateUtil } from '@main/utils'
 import { DOWNLOAD_UPDATE, INSTALL_UPDATE, CHECK_UPDATE } from '@common/constants'
-import type { OnHandler, HandleHandler } from './handler'
 
 export const autoUpdateHandleHandlerArr: HandleHandler[] = [
   {

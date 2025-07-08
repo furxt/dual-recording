@@ -3,7 +3,7 @@ import { commonHandleHandlerArr, commonOnHandlerArr } from './common'
 import { autoUpdateOnHandlerArr, autoUpdateHandleHandlerArr } from './autoUpdate'
 import { videoHandleHandlerArr } from './saveVideo'
 import { uploadFileHandleHandlerArr } from './uploadFile'
-import { logger } from '@main/utils/logger'
+import { logUtil } from '@main/utils'
 
 // on的处理器Map, 有新的处理器自行追加即可
 const onHandlerArr: OnHandler[] = [...autoUpdateOnHandlerArr, ...commonOnHandlerArr]
@@ -44,7 +44,7 @@ class Handler {
     if (fun) return fun(event, ...args)
     else {
       const errMsg = `${code} handle处理器未注入`
-      logger.error(errMsg)
+      logUtil.error(errMsg)
       return Promise.reject(new Error(errMsg))
     }
   }
@@ -52,7 +52,7 @@ class Handler {
   on(event: IpcMainInvokeEvent, code: string, ...args: unknown[]): void {
     const fun = this.onHandlerMap.get(code)
     if (fun) fun(event, ...args)
-    else logger.error(`${code} on处理器未注入`)
+    else logUtil.error(`${code} on处理器未注入`)
   }
 
   /**

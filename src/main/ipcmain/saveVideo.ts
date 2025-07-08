@@ -1,15 +1,12 @@
 import PQueue from 'p-queue'
+import type { HandleHandler } from './handler'
 import { existsSync, mkdirSync } from 'fs'
 import { unlink } from 'fs/promises'
 import { join } from 'path'
-import { videoDir } from '@main/utils/common'
-import { logger } from '@main/utils/logger'
-import { getFfmpegPath, runFFmpegTranscode } from '@main/utils/ffmpeg'
-import { FileWriter, sendUtil } from '@main/utils'
+import { FileWriter, sendUtil, ffmpegUtil, logUtil, commonUtil } from '@main/utils'
 import { IpcMainInvokeEvent } from 'electron'
 import { mainWindow } from '@main/index'
 import { SAVE_CHUNK, REPAIR_VIDEO, TRANSCODE_COMPLETE, TRANSCODE_PROGRESS } from '@common/constants'
-import type { HandleHandler } from './handler'
 
 let fileWriter: FileWriter | undefined
 
@@ -26,10 +23,10 @@ const saveChunk = async (
   params: { buffer: ArrayBuffer; uuid: string; chunkId: number }
 ): Promise<Result<void>> => {
   const { buffer, uuid, chunkId } = params
-  const folderPath = join(videoDir, uuid)
+  const folderPath = join(commonUtil.videoDir, uuid)
   if (!existsSync(folderPath)) {
     mkdirSync(folderPath, { recursive: true })
-    logger.success('开始录像,', folderPath, '文件夹创建成功')
+    logUtil.success('开始录像,', folderPath, '文件夹创建成功')
   }
 
   // 写入 webm 分片文件
@@ -57,10 +54,10 @@ const repairVideo = async (
   params: { uuid: string }
 ): Promise<Result<string>> => {
   const { uuid } = params
-  const ffmpegPath = getFfmpegPath()
-  const totalFragmentFile = join(videoDir, uuid, uuid)
-  const webmVideoPath = join(videoDir, uuid, `${uuid}.webm`)
-  const mp4VideoPath = join(videoDir, uuid, `${uuid}.mp4`)
+  const ffmpegPath = ffmpegUtil.getFfmpegPath()
+  const totalFragmentFile = join(commonUtil.videoDir, uuid, uuid)
+  const webmVideoPath = join(commonUtil.videoDir, uuid, `${uuid}.webm`)
+  const mp4VideoPath = join(commonUtil.videoDir, uuid, `${uuid}.mp4`)
 
   try {
     // 等待所有分片写完
@@ -68,12 +65,12 @@ const repairVideo = async (
     fileWriter?.close().then(() => {
       fileWriter = undefined
     })
-    logger.success('录像结束,', totalFragmentFile, '文件保存成功')
+    logUtil.success('录像结束,', totalFragmentFile, '文件保存成功')
 
     // 修复分片导致时间戳缺失的问题
     const fixedArgs = ['-i', totalFragmentFile, '-c', 'copy', '-fflags', '+genpts', webmVideoPath]
-    await runFFmpegTranscode(ffmpegPath, fixedArgs)
-    logger.debug('ffmpeg 修复', totalFragmentFile, '文件完成,', '已生成', webmVideoPath, '文件')
+    await ffmpegUtil.runFFmpegTranscode(ffmpegPath, fixedArgs)
+    logUtil.debug('ffmpeg 修复', totalFragmentFile, '文件完成,', '已生成', webmVideoPath, '文件')
     // 使用 Promise 包装整个转码异步过程
     new Promise<void>((resolve, reject) => {
       try {
@@ -96,23 +93,25 @@ const repairVideo = async (
           mp4VideoPath
         ]
         // 执行 FFmpeg 转码WebM → MP4
-        logger.debug('开始转码', webmVideoPath, '文件...')
-        runFFmpegTranscode(ffmpegPath, ffmpegArgs, (progress: number) => {
-          sendUtil.sendRecord(mainWindow!, TRANSCODE_PROGRESS, progress)
-        }).then(() => {
-          logger.debug('ffmpeg', webmVideoPath, '文件转码成功, 已生成', mp4VideoPath, '文件')
-          sendUtil.sendRecord(mainWindow!, TRANSCODE_COMPLETE)
-        })
+        logUtil.debug('开始转码', webmVideoPath, '文件...')
+        ffmpegUtil
+          .runFFmpegTranscode(ffmpegPath, ffmpegArgs, (progress: number) => {
+            sendUtil.sendRecord(mainWindow!, TRANSCODE_PROGRESS, progress)
+          })
+          .then(() => {
+            logUtil.debug('ffmpeg', webmVideoPath, '文件转码成功, 已生成', mp4VideoPath, '文件')
+            sendUtil.sendRecord(mainWindow!, TRANSCODE_COMPLETE)
+          })
         resolve()
       } catch (err) {
-        logger.error(mp4VideoPath, '文件转码过程中发生错误:\n', err)
+        logUtil.error(mp4VideoPath, '文件转码过程中发生错误:\n', err)
         reject(err)
       }
     })
 
     return { success: true, message: '录像本地保存成功', data: webmVideoPath }
   } catch (error) {
-    logger.error('修复', totalFragmentFile, '文件时间戳失败:\n', error)
+    logUtil.error('修复', totalFragmentFile, '文件时间戳失败:\n', error)
     return { success: false, error: '录像本地保存失败' }
   }
 }

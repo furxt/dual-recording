@@ -142,6 +142,7 @@ export default {
   sendError,
   sleep,
   generateErrorMsg,
+  getChunkMD5BySpark,
   APP_ENV,
   getFileMD5
 }
