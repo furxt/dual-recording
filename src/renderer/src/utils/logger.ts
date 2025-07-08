@@ -2,8 +2,7 @@ import log from 'electron-log/renderer'
 import { IS_DEV } from './common'
 
 export const logger = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  info(...params: any[]) {
+  info(...params: unknown[]) {
     if (IS_DEV) {
       console.log('Renderer', ...params)
     } else {
@@ -11,8 +10,7 @@ export const logger = {
     }
   },
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  warn(...params: any[]) {
+  warn(...params: unknown[]) {
     if (IS_DEV) {
       console.debug('Renderer⚠️', ...params)
     } else {
@@ -20,8 +18,7 @@ export const logger = {
     }
   },
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  error(...params: any[]) {
+  error(...params: unknown[]) {
     if (IS_DEV) {
       console.error('Renderer❌', ...params)
     } else {
@@ -29,8 +26,7 @@ export const logger = {
     }
   },
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  success(...params: any[]) {
+  success(...params: unknown[]) {
     if (IS_DEV) {
       console.info('Renderer✅', ...params)
     } else {
@@ -38,8 +34,7 @@ export const logger = {
     }
   },
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  debug(...params: any[]) {
+  debug(...params: unknown[]) {
     if (IS_DEV) {
       console.debug('Renderer-🐞', ...params)
     } else {
@@ -47,13 +42,11 @@ export const logger = {
     }
   },
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  verbose(...params: any[]) {
+  verbose(...params: unknown[]) {
     log.verbose('Renderer', ...params)
   },
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  silly(...params: any[]) {
+  silly(...params: unknown[]) {
     log.silly('Renderer', ...params)
   }
 }

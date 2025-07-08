@@ -4,3 +4,5 @@ interface ViteEnv {
 }
 
 type TimerId = ReturnType<typeof setTimeout>
+
+type IpcMsgHandler = (...args: unknown[]) => void | Promise<void>

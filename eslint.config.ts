@@ -26,6 +26,7 @@ export default tseslint.config(
         onUnmounted: 'readonly',
         onBeforeUnmount: 'readonly',
         TimerId: 'readonly',
+        IpcMsgHandler: 'readonly',
         WindowSizeInfo: 'readonly',
         Result: 'readonly',
 

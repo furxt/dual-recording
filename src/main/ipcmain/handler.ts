@@ -6,7 +6,12 @@ import { uploadFileHandleHandlerArr } from './uploadFile'
 import { logger } from '@main/utils/logger'
 
 // on的处理器Map, 有新的处理器自行追加即可
-const onHandlerArr = [...autoUpdateOnHandlerArr, ...commonOnHandlerArr]
+const onHandlerArr = [...autoUpdateOnHandlerArr, ...commonOnHandlerArr] as [
+  {
+    code: string
+    handler: VoidFunction
+  }
+]
 
 // handle的处理器Map, 有新的处理器自行追加即可
 const handleHandlerArr = [
@@ -14,6 +19,11 @@ const handleHandlerArr = [
   ...commonHandleHandlerArr,
   ...videoHandleHandlerArr,
   ...uploadFileHandleHandlerArr
+] as [
+  {
+    code: string
+    handler: HandleFunction
+  }
 ]
 
 class Handler {
@@ -77,9 +87,7 @@ class Handler {
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type HandleFunction = (...args: any[]) => Promise<unknown> | unknown
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type VoidFunction = (...args: any[]) => void
+type HandleFunction = (...args: unknown[]) => Promise<unknown> | unknown
+type VoidFunction = (...args: unknown[]) => void
 
 export default new Handler()

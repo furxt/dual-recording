@@ -1,12 +1,11 @@
 class IpcMessageHandler {
+  // 页面通信代码
   private pageCode: string
 
-  private handlerMap: Map<string, (...data: unknown[]) => void | Promise<void>>
+  // 具体的事件处理器
+  private handlerMap: Map<string, IpcMsgHandler>
 
-  constructor(
-    pageCode: string,
-    handlerMap: Map<string, (...data: unknown[]) => void | Promise<void>>
-  ) {
+  constructor(pageCode: string, handlerMap: Map<string, IpcMsgHandler>) {
     this.pageCode = pageCode
     this.handlerMap = handlerMap
     this.init()

@@ -100,8 +100,9 @@ const updateDownloaded = (): void => {
   }, 500)
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const IpcMessageHandlerMap = new Map<string, (...data: any[]) => void | Promise<void>>([
+const IpcMessageHandlerMap = new Map<string, IpcMsgHandler>([
+  [CLOSE_WINDOW, closeAppWindow],
+  [UPDATE_DOWNLOADED, updateDownloaded],
   [
     PRIMARY_MESSAGE,
     (_event: IpcRendererEvent, primaryMsg: string) => {
@@ -120,15 +121,14 @@ const IpcMessageHandlerMap = new Map<string, (...data: any[]) => void | Promise<
       percentage.value = percentageVal
     }
   ],
-  [CLOSE_WINDOW, closeAppWindow],
-  [UPDATE_DOWNLOADED, updateDownloaded],
   [
     CATCH_ERROR,
     (_event: IpcRendererEvent, errorMsg: string) => {
       ElMessage.error(errorMsg)
     }
   ]
-])
+] as Array<[string, IpcMsgHandler]>)
+
 const ipcMessageHandler = new IpcMessageHandler(APP_PAGE, IpcMessageHandlerMap)
 
 const showCloseWindowMsgBox = ref(false)

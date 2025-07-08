@@ -199,23 +199,22 @@ const transcodeComplete = (): void => {
   }, 500)
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const IpcMessageHandlerMap = new Map<string, (...data: any[]) => void | Promise<void>>([
+const IpcMessageHandlerMap = new Map<string, IpcMsgHandler>([
   [CHANGE_RESOLUTION, changeResolution],
+  [TRANSCODE_COMPLETE, transcodeComplete],
   [
     UPDATE_UPLOAD_PROGRESS,
     (_event: IpcRendererEvent, index: number, total: number) => {
       percentage.value = index === total ? 99 : Math.floor((index / total) * 100)
     }
   ],
-  [TRANSCODE_COMPLETE, transcodeComplete],
   [
     TRANSCODE_PROGRESS,
     (_event: IpcRendererEvent, transCodeProgressVal: number) => {
       transCodeProgress.value = transCodeProgressVal
     }
   ]
-])
+] as Array<[string, IpcMsgHandler]>)
 
 const ipcMessageHandler = new IpcMessageHandler(RECORD_PAGE, IpcMessageHandlerMap)
 
