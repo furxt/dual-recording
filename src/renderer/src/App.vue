@@ -138,7 +138,7 @@ const isDownloadUpdateApp = ref(false)
 const percentage = ref(0)
 
 onMounted(async () => {
-  ipcRendererUtil.invoke(CHECK_UPDATE)
+  ipcRendererUtil.invoke<void>(CHECK_UPDATE)
 })
 
 onUnmounted(() => {

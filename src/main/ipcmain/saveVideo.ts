@@ -1,3 +1,4 @@
+import PQueue from 'p-queue'
 import { existsSync, mkdirSync } from 'fs'
 import { unlink } from 'fs/promises'
 import { join } from 'path'
@@ -8,11 +9,13 @@ import { FileWriter, sendUtil } from '@main/utils'
 import { IpcMainInvokeEvent } from 'electron'
 import { mainWindow } from '@main/index'
 import { SAVE_CHUNK, REPAIR_VIDEO, TRANSCODE_COMPLETE, TRANSCODE_PROGRESS } from '@common/constants'
-import PQueue from 'p-queue'
+import type { HandleHandler } from './handler'
 
 let fileWriter: FileWriter | undefined
 
-// @ts-expect-error 因为项目打包方式的问题，这里我们使用默认导出，但p-queue又不支持commonjs，所以这一行忽略 el-lint 检查错误
+console.log(PQueue)
+
+// @ts-ignore: 类型“typeof PQueue”上不存在属性“default”
 const queue: PQueue = new PQueue.default({ concurrency: 1 }) // 串行队列
 
 /**
@@ -31,12 +34,15 @@ const saveChunk = async (
 
   // 写入 webm 分片文件
   const outputFilePath = join(folderPath, uuid)
-  if (!fileWriter) {
+  if (!fileWriter || fileWriter.closed()) {
     fileWriter = new FileWriter(outputFilePath)
   }
   queue.add(() => {
     if (!fileWriter) {
       return Promise.reject(new Error('fileWriter 未初始化'))
+    }
+    if (fileWriter.closed()) {
+      return Promise.reject(new Error('fileWriter 已被关闭'))
     }
     return fileWriter.append(Buffer.from(buffer), chunkId)
   })
@@ -114,4 +120,4 @@ const repairVideo = async (
 export const videoHandleHandlerArr = [
   { code: SAVE_CHUNK, handler: saveChunk },
   { code: REPAIR_VIDEO, handler: repairVideo }
-]
+] as HandleHandler[]

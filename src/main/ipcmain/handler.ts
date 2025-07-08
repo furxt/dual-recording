@@ -6,24 +6,14 @@ import { uploadFileHandleHandlerArr } from './uploadFile'
 import { logger } from '@main/utils/logger'
 
 // on的处理器Map, 有新的处理器自行追加即可
-const onHandlerArr = [...autoUpdateOnHandlerArr, ...commonOnHandlerArr] as [
-  {
-    code: string
-    handler: VoidFunction
-  }
-]
+const onHandlerArr: OnHandler[] = [...autoUpdateOnHandlerArr, ...commonOnHandlerArr]
 
 // handle的处理器Map, 有新的处理器自行追加即可
-const handleHandlerArr = [
+const handleHandlerArr: HandleHandler[] = [
   ...autoUpdateHandleHandlerArr,
   ...commonHandleHandlerArr,
   ...videoHandleHandlerArr,
   ...uploadFileHandleHandlerArr
-] as [
-  {
-    code: string
-    handler: HandleFunction
-  }
 ]
 
 class Handler {
@@ -39,9 +29,9 @@ class Handler {
     this.initHandler(handleHandlerArr, this.handelHandlerMap)
   }
 
-  initHandler(
-    handlerArr: { code: string; handler: HandleFunction | VoidFunction }[],
-    handlerMap: Map<string, HandleFunction | VoidFunction>
+  initHandler<T extends VoidFunction | HandleFunction>(
+    handlerArr: Array<{ code: string; handler: T }>,
+    handlerMap: Map<string, T>
   ): void {
     handlerArr.forEach((e) => {
       handlerMap.set(e.code, e.handler)
@@ -89,5 +79,14 @@ class Handler {
 
 type HandleFunction = (...args: unknown[]) => Promise<unknown> | unknown
 type VoidFunction = (...args: unknown[]) => void
+
+export type OnHandler = {
+  code: string
+  handler: VoidFunction
+}
+export type HandleHandler = {
+  code: string
+  handler: HandleFunction
+}
 
 export default new Handler()

@@ -1,4 +1,4 @@
-import { app, Tray, Menu, NativeImage } from 'electron'
+import { app, Tray, Menu, NativeImage, BrowserWindow } from 'electron'
 import { windowSizeArray } from './common'
 import { localConf } from './globalConf'
 import { setFfmpegHomePath } from './ffmpeg'
@@ -8,10 +8,7 @@ import { showWindow } from './window'
 import { PRIMARY_MESSAGE, CHANGE_RESOLUTION, CONF_WINDOW_SIZE } from '@common/constants'
 
 let contextMenu: Menu
-export const createTray = (
-  icon: NativeImage | string,
-  mainWindow: Electron.BrowserWindow
-): void => {
+export const createTray = (icon: NativeImage | string, mainWindow: BrowserWindow): void => {
   // const tray = new Tray(path.join(app.getAppPath(), 'resources', 'windowsTray.png')) // 替换为你的图标路径
   const tray = new Tray(icon) // 替换为你的图标路径
 

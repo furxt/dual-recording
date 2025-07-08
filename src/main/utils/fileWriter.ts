@@ -7,6 +7,10 @@ class FileWriter {
   private outputFilePath: string
   private isClosed = false
 
+  closed(): boolean {
+    return this.isClosed
+  }
+
   constructor(outputFilePath: string) {
     this.outputFilePath = outputFilePath
     this.open()

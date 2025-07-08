@@ -3,6 +3,7 @@ import { is } from '@electron-toolkit/utils'
 import { mainWindow } from '@main/index'
 import { localConf } from '@main/utils/globalConf'
 import { logger } from '@main/utils/logger'
+import type { OnHandler, HandleHandler } from './handler'
 import {
   WINDOW_CLOSE,
   WINDOW_MINIMIZE,
@@ -45,7 +46,7 @@ const getAppVersion = (): string => {
 }
 
 // ipcMain.handle()
-export const commonHandleHandlerArr = [
+export const commonHandleHandlerArr: HandleHandler[] = [
   {
     code: APP_VERSION,
     handler: getAppVersion
@@ -53,7 +54,7 @@ export const commonHandleHandlerArr = [
 ]
 
 // ipcMain.on()
-export const commonOnHandlerArr = [
+export const commonOnHandlerArr: OnHandler[] = [
   {
     code: WINDOW_CLOSE,
     handler: windowClose

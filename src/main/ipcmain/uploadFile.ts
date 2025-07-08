@@ -1,3 +1,4 @@
+import axios from 'axios'
 import { stat } from 'fs/promises'
 import { basename, extname } from 'path'
 import { logger } from '@main/utils/logger'
@@ -7,8 +8,8 @@ import { envUtil } from '@common/utils'
 import { IpcMainInvokeEvent } from 'electron'
 import { UPLOAD_FILE, UPDATE_UPLOAD_PROGRESS } from '@common/constants'
 import { mainWindow } from '@main/index'
-import axios from 'axios'
 import { unlink } from 'fs/promises'
+import type { HandleHandler } from './handler'
 
 // 配置
 const CHUNK_SIZE = 1024 * 1024 * 2 // 2MB per chunk
@@ -103,4 +104,4 @@ export const uploadFileHandleHandlerArr = [
     code: UPLOAD_FILE,
     handler: uploadFile
   }
-]
+] as HandleHandler[]

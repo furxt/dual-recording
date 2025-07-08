@@ -428,7 +428,7 @@ const saveChunkToDB = async (
   chunkId: number
 ): Promise<void> => {
   let arrayBuffer: ArrayBuffer | undefined = await blob?.arrayBuffer()
-  await ipcRendererUtil.invoke(SAVE_CHUNK, {
+  await ipcRendererUtil.invoke<Result<void>>(SAVE_CHUNK, {
     buffer: arrayBuffer,
     uuid,
     chunkId
@@ -500,9 +500,12 @@ const startRecording = async (): Promise<void> => {
       await Promise.all(pendingSaves)
       pendingSaves.length = 0
       showTransCodeProgress.value = true
-      const { success, message, data, error } = (await ipcRendererUtil.invoke(REPAIR_VIDEO, {
-        uuid
-      })) as Result<string>
+      const { success, message, data, error } = await ipcRendererUtil.invoke<Result<string>>(
+        REPAIR_VIDEO,
+        {
+          uuid
+        }
+      )
 
       loading?.close()
       loading = undefined
@@ -642,10 +645,7 @@ const upload = async (): Promise<void> => {
     background: 'rgba(0, 0, 0, 0.2)', // 黑色半透明背景
     customClass: 'transparent-loading' // 自定义类名
   })
-  const { success } = (await ipcRendererUtil.invoke(
-    UPLOAD_FILE,
-    localFilePath.value
-  )) as Result<void>
+  const { success } = await ipcRendererUtil.invoke<Result<void>>(UPLOAD_FILE, localFilePath.value)
 
   notification?.close()
   notification = undefined

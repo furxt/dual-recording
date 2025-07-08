@@ -58,7 +58,7 @@ const closeWindow = (): void => {
 
 const version = ref('')
 onMounted(async () => {
-  version.value = (await ipcRendererUtil.invoke(APP_VERSION)) as string
+  version.value = await ipcRendererUtil.invoke<string>(APP_VERSION)
 })
 </script>
 
