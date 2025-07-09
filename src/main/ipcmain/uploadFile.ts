@@ -8,19 +8,59 @@ import { mainWindow } from '@main/index'
 import { stat, unlink } from 'fs/promises'
 import { UPLOAD_FILE, UPDATE_UPLOAD_PROGRESS } from '@common/constants'
 
+const SUCCESS_CODE = 1
+
 // 配置
 const CHUNK_SIZE = 1024 * 1024 * 2 // 2MB per chunk
 
-const REQUEST_HEADERS = {}
+const http = axios.create({
+  baseURL: `${envUtil.MAIN_VITE_SEVER_URL}${envUtil.MAIN_VITE_API_PREFIX}`, // 这里是拼接一段前缀，为了解决开发阶段的代理
+  timeout: 1000 * 60
+})
+
+// 请求拦截器
+http.interceptors.request.use(
+  (config) => {
+    if (envUtil.MAIN_VITE_AUTH_NAME && envUtil.MAIN_VITE_AUTH_VAL)
+      config.headers[envUtil.MAIN_VITE_AUTH_NAME] = envUtil.MAIN_VITE_AUTH_VAL
+    return config
+  },
+  (error) => {
+    logUtil.error('请求上传文件错误', error)
+  }
+)
+
+// 响应拦截器
+http.interceptors.response.use(
+  (res) => {
+    const { data } = res
+    if (res.status !== 200) {
+      throw new Error(data)
+    } else {
+      console.log(res)
+      const {
+        config: { baseURL, url }
+      } = res
+      logUtil.info(
+        '请求服务地址:',
+        (baseURL || '') + url,
+        ', 服务返回数据:',
+        `${JSON.stringify(data)}`
+      )
+      return res
+    }
+  },
+  (error) => {
+    logUtil.error('上传文件时服务端响应错误', error)
+    return Promise.reject(error)
+  }
+)
 
 const uploadFile = async (
   _event: IpcMainInvokeEvent,
   localFilePath: string
 ): Promise<Result<void>> => {
   localFilePath = localFilePath.slice(0, -5) + '.mp4'
-  const UPLOAD_URL = `${envUtil.MAIN_VITE_SEVER_URL}${envUtil.MAIN_VITE_API_PREFIX}${envUtil.MAIN_VITE_SAVE_CHUNK_URL}`
-  const MERGE_URL = `${envUtil.MAIN_VITE_SEVER_URL}${envUtil.MAIN_VITE_API_PREFIX}${envUtil.MAIN_VITE_MERGE_CHUNK_URL}`
-  const CHECK_URL = `${envUtil.MAIN_VITE_SEVER_URL}${envUtil.MAIN_VITE_API_PREFIX}${envUtil.MAIN_VITE_CHECK_FILE_URL}`
 
   const result = {
     success: false
@@ -43,6 +83,7 @@ const uploadFile = async (
         fileSize
       )
 
+      // 请求的form表单
       const formData = new FormData()
       formData.append('file', new Blob([buffer!], { type: 'application/octet-stream' }), `${i}`)
       formData.append('chunkIndex', `${i}`)
@@ -50,14 +91,15 @@ const uploadFile = async (
       formData.append('totalChunks', `${totalChunks}`)
       logUtil.debug(`正在上传 ${fileId} 的第 ${i + 1}/${totalChunks} 片...`)
 
+      // 上传分片
       const {
         data: { code }
-      } = await axios.post(`${UPLOAD_URL}/${fileId}`, formData, {
-        headers: REQUEST_HEADERS, // 适用于 node-fetch 或 form-data
-        timeout: 1000 * 60
-      })
+      } = await http.post<ApiResponse<void>>(
+        `${envUtil.MAIN_VITE_SAVE_CHUNK_URL}/${fileId}`,
+        formData
+      )
 
-      if (code !== 1) {
+      if (code !== SUCCESS_CODE) {
         logUtil.error(`上传 ${fileId} 的第 ${i + 1}/${totalChunks} 片失败`)
         return result
       } else {
@@ -70,8 +112,11 @@ const uploadFile = async (
     // 通知后端合并文件
     const {
       data: { code }
-    } = await axios.get(`${MERGE_URL}/${fileId}`, { params: { totalChunks } })
-    if (code !== 1) {
+    } = await http.get<ApiResponse<void>>(`${envUtil.MAIN_VITE_MERGE_CHUNK_URL}/${fileId}`, {
+      params: { totalChunks }
+    })
+
+    if (code !== SUCCESS_CODE) {
       logUtil.error(`通知后端合并文件 ${fileId} 失败`)
       return result
     } else {
@@ -81,8 +126,10 @@ const uploadFile = async (
     logUtil.debug(`文件 ${fileId} MD5: ${fileMD5}`)
     const {
       data: { code: resultCode }
-    } = await axios.get(`${CHECK_URL}/${fileId}`, { params: { fileMD5 } })
-    if (resultCode !== 1) {
+    } = await http.get<ApiResponse<void>>(`${envUtil.MAIN_VITE_CHECK_FILE_URL}/${fileId}`, {
+      params: { fileMD5 }
+    })
+    if (resultCode !== SUCCESS_CODE) {
       logUtil.error(`校验检查文件 ${fileId} 失败`)
     } else {
       logUtil.success(`校验检查文件 ${fileId} 成功`)

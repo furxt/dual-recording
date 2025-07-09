@@ -9,4 +9,13 @@ interface ViteEnv {
   readonly MAIN_VITE_SAVE_CHUNK_URL: string
   readonly MAIN_VITE_MERGE_CHUNK_URL: string
   readonly MAIN_VITE_CHECK_FILE_URL: string
+
+  readonly MAIN_VITE_AUTH_NAME: string
+  readonly MAIN_VITE_AUTH_VAL: string
+}
+
+interface ApiResponse<T> {
+  code: number
+  message: string
+  data: T
 }
