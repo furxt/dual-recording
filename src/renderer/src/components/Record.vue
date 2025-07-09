@@ -515,7 +515,6 @@ const startRecording = async (): Promise<void> => {
         console.log(data)
         localFilePath.value = data!
         disableReplayBtn.value = false
-
         showControls.value = true
         videoRef.value!.src = `file:///${localFilePath.value}`
         // videoRef.value!.src = `${CUSTOM_PROTOCOL}://video/${encodeURIComponent(localFilePath.value)}`
@@ -523,11 +522,13 @@ const startRecording = async (): Promise<void> => {
           videoRef.value!.pause()
         }, 500)
       } else {
+        showTransCodeProgress.value = false
         ElMessage.error(error)
       }
     } catch (err) {
       loading?.close()
       loading = undefined
+      showTransCodeProgress.value = false
       console.error('视频保存失败!', err)
       ElMessage.error('视频保存失败!')
     } finally {
