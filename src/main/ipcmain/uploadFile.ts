@@ -66,6 +66,37 @@ const uploadFile = async (
     success: false
   }
   try {
+    //    // 1. 从服务端获取 RSA 公钥
+    // const publicKeyPem = await fetchPublicKeyFromServer();
+
+    // // 2. 生成 AES 密钥并用 RSA 公钥加密
+    // const { encryptedKey, iv } = await generateAndEncryptAesKey(publicKeyPem);
+
+    // // 3. 发送加密后的 AES 密钥和 IV 到服务端（可选，或直接存储在前端）
+    // // 这里假设服务端已经通过某种方式获取了 encryptedKey 和 iv（如通过另一个 API）
+
+    // // 4. 用 AES 密钥加密分片并上传
+    // const chunkSize = 1 * 1024 * 1024; // 1MB 分片
+    // const aesKey = await importAesKey(encryptedKey); // 需要实现（略）
+    // for (let i = 0; i < totalChunks; i++) {
+    //   const start = i * chunkSize;
+    //   const end = Math.min(start + chunkSize, file.size);
+    //   const chunk = file.slice(start, end);
+
+    //   const buffer = await chunk.arrayBuffer();
+    //   const encryptedBuffer = await encryptBuffer(buffer, aesKey, iv);
+
+    //   const encryptedBlob = new Blob([encryptedBuffer], { type: 'application/octet-stream' });
+
+    //   const formData = new FormData();
+    //   formData.append('file', encryptedBlob, `${i}`);
+    //   formData.append('chunkIndex', `${i}`);
+    //   formData.append('chunkMD5', await calculateMD5(buffer));
+    //   formData.append('totalChunks', `${totalChunks}`);
+    //   formData.append('fileId', fileId);
+
+    //   await axios.post(`${envUtil.MAIN_VITE_SAVE_CHUNK_URL}/${fileId}`, formData);
+
     const fileSize = (await stat(localFilePath)).size
     const fileId = basename(localFilePath, extname(localFilePath))
     const totalChunks = Math.ceil(fileSize / CHUNK_SIZE)

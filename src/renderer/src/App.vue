@@ -100,7 +100,7 @@ const updateDownloaded = (): void => {
   }, 500)
 }
 
-const IpcMessageHandlerMap = new Map<string, IpcMsgHandler>([
+const ipcMsgHandlerArr = [
   [CLOSE_WINDOW, closeAppWindow],
   [UPDATE_DOWNLOADED, updateDownloaded],
   [
@@ -127,9 +127,9 @@ const IpcMessageHandlerMap = new Map<string, IpcMsgHandler>([
       ElMessage.error(errorMsg)
     }
   ]
-] as Array<[string, IpcMsgHandler]>)
+] as Array<[string, IpcMsgHandler]>
 
-const ipcMessageHandler = new IpcMessageHandler(APP_PAGE, IpcMessageHandlerMap)
+const ipcMessageHandler = new IpcMessageHandler(APP_PAGE, new Map(ipcMsgHandlerArr))
 
 const showCloseWindowMsgBox = ref(false)
 

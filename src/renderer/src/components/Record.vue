@@ -199,7 +199,7 @@ const transcodeComplete = (): void => {
   }, 500)
 }
 
-const IpcMessageHandlerMap = new Map<string, IpcMsgHandler>([
+const ipcMsgHandlerArr = [
   [CHANGE_RESOLUTION, changeResolution],
   [TRANSCODE_COMPLETE, transcodeComplete],
   [
@@ -214,9 +214,9 @@ const IpcMessageHandlerMap = new Map<string, IpcMsgHandler>([
       transCodeProgress.value = transCodeProgressVal
     }
   ]
-] as Array<[string, IpcMsgHandler]>)
+] as Array<[string, IpcMsgHandler]>
 
-const ipcMessageHandler = new IpcMessageHandler(RECORD_PAGE, IpcMessageHandlerMap)
+const ipcMessageHandler = new IpcMessageHandler(RECORD_PAGE, new Map([...ipcMsgHandlerArr]))
 
 const globalConfigStore = useGlobalConfigStore()
 
