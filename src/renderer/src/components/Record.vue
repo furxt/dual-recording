@@ -216,7 +216,7 @@ const ipcMsgHandlerArr = [
   ]
 ] as Array<[string, IpcMsgHandler]>
 
-const ipcMessageHandler = new IpcMessageHandler(RECORD_PAGE, new Map([...ipcMsgHandlerArr]))
+const ipcMessageHandler = new IpcMessageHandler(RECORD_PAGE, new Map(ipcMsgHandlerArr))
 
 const globalConfigStore = useGlobalConfigStore()
 
