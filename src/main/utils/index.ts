@@ -1,5 +1,6 @@
 import autoUpdateUtil from './autoUpdate'
 import commonUtil from './common'
+import cryptoUtil from './crypto'
 import ffmpegUtil from './ffmpeg'
 import FileWriter from './fileWriter'
 import globalConfUtil from './globalConf'
@@ -13,6 +14,7 @@ export {
   FileWriter,
   autoUpdateUtil,
   commonUtil,
+  cryptoUtil,
   ffmpegUtil,
   globalConfUtil,
   logUtil,

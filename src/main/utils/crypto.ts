@@ -1,60 +1,37 @@
+import crypto from 'crypto'
+import type { CipherKey, BinaryLike } from 'crypto'
 export async function generateAndEncryptAesKey(
   publicKeyPem: string
-): Promise<{ encryptedKey: string; iv: Uint8Array }> {
-  // 1. 生成随机 AES-256-GCM 密钥和 IV
-  const key = await crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, ['encrypt'])
-  const iv = crypto.getRandomValues(new Uint8Array(12))
+): Promise<{ encryptedKey: string; key: Buffer; iv: Buffer }> {
+  // 生成 AES-256 密钥 (32 bytes for 256 bits)
+  const key = crypto.randomBytes(32) // 可以选择 16, 24, 或 32 字节
 
-  // 2. 导出 AES 密钥为 ArrayBuffer
-  const exportedKey = await crypto.subtle.exportKey('raw', key)
-  const keyBuffer = exportedKey
+  // 生成 IV（Nonce）, 对于 GCM 建议使用 12 bytes (96 bits)
+  const iv = crypto.randomBytes(12)
 
-  // 3. 将 PEM 格式的公钥转换为 CryptoKey
-  const rsaPublicKey = await importRsaPublicKey(publicKeyPem)
-
-  // 4. 用 RSA-OAEP 加密 AES 密钥
-  const encryptedKeyBuffer = await crypto.subtle.encrypt(
-    { name: 'RSA-OAEP' },
-    rsaPublicKey,
-    keyBuffer
+  const encryptedKeyBuf = crypto.publicEncrypt(
+    {
+      key: publicKeyPem,
+      padding: crypto.constants.RSA_PKCS1_OAEP_PADDING
+    },
+    key
   )
 
-  // 5. Base64 编码加密后的 AES 密钥（方便传输）
-  const encryptedKeyBase64 = arrayBufferToBase64(encryptedKeyBuffer)
-
-  return { encryptedKey: encryptedKeyBase64, iv: iv }
+  return { encryptedKey: encryptedKeyBuf.toString('base64'), key, iv }
 }
 
-// 辅助函数：导入 PEM 格式的 RSA 公钥
-async function importRsaPublicKey(pem: string): Promise<CryptoKey> {
-  // 1. 移除 PEM 头尾和换行符
-  const pemContents = pem.replace(/-----BEGIN PUBLIC KEY-----|-----END PUBLIC KEY-----|\n/g, '')
-  // 2. Base64 解码
-  const binaryDer = base64ToArrayBuffer(pemContents)
-  // 3. 导入为 CryptoKey
-  return await crypto.subtle.importKey(
-    'spki',
-    binaryDer,
-    { name: 'RSA-OAEP', hash: 'SHA-256' },
-    false,
-    ['encrypt']
-  )
+export function encryptData(data: Buffer, key: CipherKey, iv: BinaryLike): Buffer {
+  // 创建 AES-GCM 加密器
+  const cipher = crypto.createCipheriv('aes-256-gcm', key, iv)
+  // 更新加密内容
+  const encrypted = Buffer.concat([cipher.update(data), cipher.final()])
+
+  // 获取认证标签（必须在 cipher.final() 之后调用！）
+  const authTag = cipher.getAuthTag()
+  return Buffer.concat([encrypted, authTag])
 }
 
-// 辅助函数：Base64 转 ArrayBuffer
-function base64ToArrayBuffer(base64: string): ArrayBuffer {
-  const binaryString = atob(base64)
-  const bytes = new Uint8Array(binaryString.length)
-  for (let i = 0; i < binaryString.length; i++) {
-    bytes[i] = binaryString.charCodeAt(i)
-  }
-  return bytes.buffer
-}
-
-// 辅助函数：ArrayBuffer 转 Base64
-function arrayBufferToBase64(buffer: ArrayBuffer): string {
-  const bytes = new Uint8Array(buffer)
-  let binary = ''
-  bytes.forEach((b) => (binary += String.fromCharCode(b)))
-  return btoa(binary)
+export default {
+  encryptData,
+  generateAndEncryptAesKey
 }

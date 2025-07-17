@@ -1,7 +1,7 @@
 import axios from 'axios'
 import type { HandleHandler } from './handler'
 import { basename, extname } from 'path'
-import { sendUtil, logUtil, commonUtil } from '@main/utils'
+import { sendUtil, logUtil, commonUtil, cryptoUtil } from '@main/utils'
 import { envUtil } from '@common/utils'
 import { IpcMainInvokeEvent } from 'electron'
 import { mainWindow } from '@main/index'
@@ -37,7 +37,6 @@ http.interceptors.response.use(
     if (res.status !== 200) {
       throw new Error(data)
     } else {
-      console.log(res)
       const {
         config: { baseURL, url }
       } = res
@@ -66,40 +65,37 @@ const uploadFile = async (
     success: false
   }
   try {
-    //    // 1. 从服务端获取 RSA 公钥
-    // const publicKeyPem = await fetchPublicKeyFromServer();
-
-    // // 2. 生成 AES 密钥并用 RSA 公钥加密
-    // const { encryptedKey, iv } = await generateAndEncryptAesKey(publicKeyPem);
-
-    // // 3. 发送加密后的 AES 密钥和 IV 到服务端（可选，或直接存储在前端）
-    // // 这里假设服务端已经通过某种方式获取了 encryptedKey 和 iv（如通过另一个 API）
-
-    // // 4. 用 AES 密钥加密分片并上传
-    // const chunkSize = 1 * 1024 * 1024; // 1MB 分片
-    // const aesKey = await importAesKey(encryptedKey); // 需要实现（略）
-    // for (let i = 0; i < totalChunks; i++) {
-    //   const start = i * chunkSize;
-    //   const end = Math.min(start + chunkSize, file.size);
-    //   const chunk = file.slice(start, end);
-
-    //   const buffer = await chunk.arrayBuffer();
-    //   const encryptedBuffer = await encryptBuffer(buffer, aesKey, iv);
-
-    //   const encryptedBlob = new Blob([encryptedBuffer], { type: 'application/octet-stream' });
-
-    //   const formData = new FormData();
-    //   formData.append('file', encryptedBlob, `${i}`);
-    //   formData.append('chunkIndex', `${i}`);
-    //   formData.append('chunkMD5', await calculateMD5(buffer));
-    //   formData.append('totalChunks', `${totalChunks}`);
-    //   formData.append('fileId', fileId);
-
-    //   await axios.post(`${envUtil.MAIN_VITE_SAVE_CHUNK_URL}/${fileId}`, formData);
-
     const fileSize = (await stat(localFilePath)).size
     const fileId = basename(localFilePath, extname(localFilePath))
     const totalChunks = Math.ceil(fileSize / CHUNK_SIZE)
+
+    // 从服务端获取RSA公钥
+    const {
+      data: { code: businessCode, data: publicKeyPem }
+    } = await http.get<ApiResponse<string>>('/key/publicKey')
+    if (businessCode !== SUCCESS_CODE) {
+      return result
+    }
+
+    // 生成 AES 密钥并用 RSA 公钥加密
+    const { encryptedKey, key, iv } = await cryptoUtil.generateAndEncryptAesKey(publicKeyPem)
+
+    console.log('encryptedKey', encryptedKey)
+    console.log('iv', iv)
+
+    // 发送加密后的 AES 密钥和 IV 到服务端（可选，或直接存储在前端）
+    const {
+      data: { code: storeKeyResCode }
+    } = await http.post<ApiResponse<void>>('/key/store', {
+      encryptedAesKey: encryptedKey,
+      iv: Buffer.from(iv).toString('base64'),
+      fileId
+    })
+    if (storeKeyResCode !== SUCCESS_CODE) {
+      logUtil.error('发送加密后的 AES 密钥和 IV 到服务端失败')
+      return result
+    }
+
     logUtil.info(`开始上传文件: ${localFilePath}, 共 ${totalChunks} 个分片, fileId: ${fileId}`)
     for (let i = 0; i < totalChunks; i++) {
       const start = i * CHUNK_SIZE
@@ -114,9 +110,15 @@ const uploadFile = async (
         fileSize
       )
 
+      const encryptedBuffer = cryptoUtil.encryptData(buffer!, key, iv)
+
       // 请求的form表单
       const formData = new FormData()
-      formData.append('file', new Blob([buffer!], { type: 'application/octet-stream' }), `${i}`)
+      formData.append(
+        'file',
+        new Blob([encryptedBuffer], { type: 'application/octet-stream' }),
+        `${i}`
+      )
       formData.append('chunkIndex', `${i}`)
       formData.append('chunkMD5', chunkMD5)
       formData.append('totalChunks', `${totalChunks}`)
@@ -125,10 +127,7 @@ const uploadFile = async (
       // 上传分片
       const {
         data: { code }
-      } = await http.post<ApiResponse<void>>(
-        `${envUtil.MAIN_VITE_SAVE_CHUNK_URL}/${fileId}`,
-        formData
-      )
+      } = await http.post<ApiResponse<void>>(`/upload/chunk/${fileId}`, formData)
 
       if (code !== SUCCESS_CODE) {
         logUtil.error(`上传 ${fileId} 的第 ${i + 1}/${totalChunks} 片失败`)
@@ -143,7 +142,7 @@ const uploadFile = async (
     // 通知后端合并文件
     const {
       data: { code }
-    } = await http.get<ApiResponse<void>>(`${envUtil.MAIN_VITE_MERGE_CHUNK_URL}/${fileId}`, {
+    } = await http.get<ApiResponse<void>>(`/upload/merge/${fileId}`, {
       params: { totalChunks }
     })
 
@@ -157,7 +156,7 @@ const uploadFile = async (
     logUtil.debug(`文件 ${fileId} MD5: ${fileMD5}`)
     const {
       data: { code: resultCode }
-    } = await http.get<ApiResponse<void>>(`${envUtil.MAIN_VITE_CHECK_FILE_URL}/${fileId}`, {
+    } = await http.get<ApiResponse<void>>(`/upload/check/${fileId}`, {
       params: { fileMD5 }
     })
     if (resultCode !== SUCCESS_CODE) {
