@@ -88,7 +88,7 @@ const uploadFile = async (
       data: { code: storeKeyResCode }
     } = await http.post<ApiResponse<void>>('/key/store', {
       encryptedAesKey: encryptedKey,
-      iv: Buffer.from(iv).toString('base64'),
+      iv: iv.toString('base64'),
       fileId
     })
     if (storeKeyResCode !== SUCCESS_CODE) {
